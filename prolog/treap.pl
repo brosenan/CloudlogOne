@@ -58,6 +58,5 @@ treap:mergeTree(t(L1, K1, W1, V1, R1), t(L2, K2, W2, V2, R2), T) :-
 	% else
 	  (treap:mergeTree(t(L1, K1, W1, V1, R1), L2, L2_),
 	  T = t(L2_, K2, W2, V2, R2))).
-	  
 
-
+treap:delete(_, _, _).
