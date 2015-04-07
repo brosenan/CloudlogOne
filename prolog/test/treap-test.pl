@@ -80,9 +80,10 @@ test(merge_treaps, []) :-
 	treap:mergeTree(TA, TB, T),
 	validateTree(T, 0, 2000).
 
-test(delete, []) :-
+test(delete, [true(R1 = nil)]) :-
 	treap:empty(T0),
 	populateTree(T0, 0, 1000, T1),
-	treap:delete(T1, 300, T2).
+	treap:delete(T1, 300, T2),
+	treap:get(T2, 300, R1).
 
 :- end_tests(treap).
