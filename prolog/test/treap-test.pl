@@ -52,7 +52,7 @@ maxDepth(t(L, _, _, _, R), D) :-
 	maxDepth(R, DR),
 	D is max(DL, DR) + 1.
 
-test(max_depth, [true(D < 25)]) :-
+test(max_depth, [true(D < 27)]) :-
 	treap:empty(T0),
 	populateTree(T0, 0, 1000, T),
 	maxDepth(T, D).
@@ -62,7 +62,8 @@ validateTree(T, N0, N) :-
 	  true,
 	% else
 	  (N1 is N0 + 1,
-	  treap:get(T, N0, N0),
+	  treap:get(T, N0, V),
+	  if(V \= N0, (write(V \= N0), nl, fail), true),
 	  plunit_treap:validateTree(T, N1, N))).
 	
 
@@ -70,5 +71,18 @@ test(validate_values, []) :-
 	treap:empty(T0),
 	populateTree(T0, 0, 1000, T),
 	validateTree(T, 0, 1000).
+
+test(merge_treaps, []) :-
+	treap:empty(TA0),
+	populateTree(TA0, 0, 1000, TA),
+	treap:empty(TB0),
+	populateTree(TB0, 1000, 2000, TB),
+	treap:mergeTree(TA, TB, T),
+	validateTree(T, 0, 2000).
+
+test(delete, []) :-
+	treap:empty(T0),
+	populateTree(T0, 0, 1000, T1),
+	treap:delete(T1, 300, T2).
 
 :- end_tests(treap).

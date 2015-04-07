@@ -46,3 +46,18 @@ treap:rotateRight(t(t(X, K1, W1, V1, Y), K2, W2, V2, Z), T) :-
 	  T = t(t(X, K1, W1, V1, Y), K2, W2, V2, Z),
 	% else
 	  T = t(X, K1, W1, V1, t(Y, K2, W2, V2, Z))).
+
+treap:mergeTree(nil, nil, nil).
+treap:mergeTree(nil, t(L, K, W, V, R), t(L, K, W, V, R)).
+treap:mergeTree(t(L, K, W, V, R), nil, t(L, K, W, V, R)).
+treap:mergeTree(t(L1, K1, W1, V1, R1), t(L2, K2, W2, V2, R2), T) :-
+	util:enforce(K1 @< K2),
+	if(W1 @> W2,
+	  (treap:mergeTree(R1, t(L2, K2, W2, V2, R2), R1_),
+	  T = t(L1, K1, W1, V1, R1_)),
+	% else
+	  (treap:mergeTree(t(L1, K1, W1, V1, R1), L2, L2_),
+	  T = t(L2_, K2, W2, V2, R2))).
+	  
+
+
