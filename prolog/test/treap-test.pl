@@ -1,4 +1,5 @@
 :- begin_tests(treap).
+:- use_module('../util.pl').
 :- use_module('../treap.pl').
 
 test(create_empty) :-
@@ -30,12 +31,44 @@ test(right_rotation, [true(T2 = t(_, a, 2, 2, _))]) :-
 	treap:set(T0, b, 1, 3, T1),
 	treap:set(T1, a, 2, 2, T2).
 
-test(set_without_weight, []) :-
+test(set_without_weight, [true([R1, R2] = [3, 2])]) :-
 	treap:empty(T0),
 	treap:set(T0, b, 3, T1),
 	treap:set(T1, a, 2, T2),
 	treap:get(T2, b, R1),
 	treap:get(T2, a, R2).
 
+populateTree(T0, N0, N, T) :-
+	if(N0 = N,
+	  T = T0,
+	% else
+	  (N1 is N0 + 1,
+	  treap:set(T0, N0, N0, T1),
+	  plunit_treap:populateTree(T1, N1, N, T))).
+
+maxDepth(nil, 0).
+maxDepth(t(L, _, _, _, R), D) :-
+	maxDepth(L, DL),
+	maxDepth(R, DR),
+	D is max(DL, DR) + 1.
+
+test(max_depth, [true(D < 25)]) :-
+	treap:empty(T0),
+	populateTree(T0, 0, 1000, T),
+	maxDepth(T, D).
+
+validateTree(T, N0, N) :-
+	if(N0 = N,
+	  true,
+	% else
+	  (N1 is N0 + 1,
+	  treap:get(T, N0, N0),
+	  plunit_treap:validateTree(T, N1, N))).
+	
+
+test(validate_values, []) :-
+	treap:empty(T0),
+	populateTree(T0, 0, 1000, T),
+	validateTree(T, 0, 1000).
 
 :- end_tests(treap).
