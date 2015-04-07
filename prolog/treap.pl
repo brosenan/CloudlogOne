@@ -13,6 +13,10 @@ treap:get(t(L, K, _, V, R), K1, V1) :-
 	  %else
 	    treap:get(R, K1, V1))).
 
+treap:set(T1, K, V, T2) :-
+	random(W),
+	treap:set(T1, K, W, V, T2).
+
 treap:set(nil, K, W, V, t(nil, K, W, V, nil)).
 treap:set(t(L, K, W, V, R), K1, W1, V1, TOut) :-
 	if(K == K1, (
