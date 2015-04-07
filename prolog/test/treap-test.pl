@@ -20,9 +20,14 @@ test(add_and_retrieve_two_values, [true([R1, R2] == [2, 3])]) :-
 	treap:lookup(T2, foo, R1),
 	treap:lookup(T2, bar, R2).
 
-test(weight_should_count, [true(T2 = t(_, foo, 2, 2, _))]) :-
+test(left_rotation, [true(T2 = t(_, b, 2, 2, _))]) :-
 	treap:empty(T0),
-	treap:add(T0, bar, 1, 3, T1),
-	treap:add(T1, foo, 2, 2, T2).
+	treap:add(T0, a, 1, 3, T1),
+	treap:add(T1, b, 2, 2, T2).
+
+test(right_rotation, [true(T2 = t(_, a, 2, 2, _))]) :-
+	treap:empty(T0),
+	treap:add(T0, b, 1, 3, T1),
+	treap:add(T1, a, 2, 2, T2).
 
 :- end_tests(treap).
