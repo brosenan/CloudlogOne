@@ -30,4 +30,12 @@ test(right_rotation, [true(T2 = t(_, a, 2, 2, _))]) :-
 	treap:set(T0, b, 1, 3, T1),
 	treap:set(T1, a, 2, 2, T2).
 
+test(set_without_weight, []) :-
+	treap:empty(T0),
+	treap:set(T0, b, 3, T1),
+	treap:set(T1, a, 2, T2),
+	treap:get(T2, b, R1),
+	treap:get(T2, a, R2).
+
+
 :- end_tests(treap).
