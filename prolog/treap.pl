@@ -7,6 +7,7 @@
 treap:empty(nil([])).
 
 treap:get(nil(_), _, nil).
+treap:get(ph(PH), _, ph(PH)).
 treap:get(t(L, K, _, V, _, R), K1, V1) :-
 	if(K = K1,
 	  V1 = V,
@@ -160,4 +161,14 @@ treap:updateHookValue([kv(K, V) | Hs], H, Hv, HsOut) :-
 	% else
 	  (HsOut = [kv(K, V) | HsPrime],
 	  treap:updateHookValue(Hs, H, Hv, HsPrime))).
+
+treap:putPlaceholder(nil(_), _, PH, ph(PH)).
+treap:putPlaceholder(t(L, K, W, V, H, R), K1, PH, T) :-
+	if(K1 @< K,
+	  (treap:putPlaceholder(L, K1, PH, L1),
+	  T = t(L1, K, W, V, H, R)),
+	% else
+	  (treap:putPlaceholder(R, K1, PH, R1),
+	  T = t(L, K, W, V, H, R1))).
+
 

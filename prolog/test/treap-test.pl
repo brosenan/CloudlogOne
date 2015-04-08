@@ -186,4 +186,10 @@ test(capped_set_throws_pending_hooks, [throws(treap_error(depth_limit_exceeded([
 	treap:set(T2, a(2), 2, 2, 2, T3),
 	treap:set(T3, a(3), 1, 3, 2, T4).
 
+test(put_placeholder, [true(R =@= ph(my_placeholder))]) :-
+	treap:empty(T0),
+	treap:set(T0, a(2, X), 1, T1),
+	treap:putPlaceholder(T1, a(3, X), my_placeholder, T2),
+	treap:get(T2, a(3, X), R).
+
 :- end_tests(treap).
