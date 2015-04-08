@@ -10,8 +10,6 @@ termcompare:dominates(X, Y) :-
 	  % else
 	    (X =.. [Func | XArgs],
 	    Y =.. [Func | YArgs],
-	    length(XArgs, Arity),
-	    length(YArgs, Arity),
 	    termcompare:dominatesList(XArgs, YArgs)))).
 
 termcompare:dominatesList([], []).
