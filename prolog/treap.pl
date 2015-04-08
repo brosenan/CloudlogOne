@@ -171,4 +171,13 @@ treap:putPlaceholder(t(L, K, W, V, H, R), K1, PH, T) :-
 	  (treap:putPlaceholder(R, K1, PH, R1),
 	  T = t(L, K, W, V, H, R1))).
 
+treap:updatePlaceholder(ph(PH1), _, PH1, PH2, ph(PH2)).
+treap:updatePlaceholder(t(L, K, W, V, H, R), K1, PH1, PH2, T) :-
+	if(K1 @< K,
+	  (treap:updatePlaceholder(L, K1, PH1, PH2, L1),
+	  T = t(L1, K, W, V, H, R)),
+	% else
+	  (treap:updatePlaceholder(R, K1, PH1, PH2, R1),
+	  T = t(L, K, W, V, H, R1))).
+	
 

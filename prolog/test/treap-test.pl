@@ -192,4 +192,17 @@ test(put_placeholder, [true(R =@= ph(my_placeholder))]) :-
 	treap:putPlaceholder(T1, a(3, X), my_placeholder, T2),
 	treap:get(T2, a(3, X), R).
 
+test(update_placeholder, [true(R =@= ph(placeholder2))]) :-
+	treap:empty(T0),
+	treap:set(T0, a(2, X), 1, T1),
+	treap:putPlaceholder(T1, a(3, X), placeholder1, T2),
+	treap:updatePlaceholder(T2, a(3, X), placeholder1, placeholder2, T3),
+	treap:get(T3, a(3, X), R).
+
+test(update_placeholder_fails_on_mismatch, [fail]) :-
+	treap:empty(T0),
+	treap:set(T0, a(2, X), 1, T1),
+	treap:putPlaceholder(T1, a(3, X), placeholder1, T2),
+	treap:updatePlaceholder(T2, a(3, X), placeholderXX, placeholder2, T3).
+
 :- end_tests(treap).
