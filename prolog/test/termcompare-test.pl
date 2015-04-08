@@ -22,4 +22,7 @@ test(dominates_arity, []) :-
 test(dominates_nested, []) :-
 	termcompare:dominates(a(b(1, _), c), a(b(1, 2), _)).
 
+test(dominates_arity_after_var, []) :-
+	\+termcompare:dominates(a(_, 1), a(_, 1, 3)).
+
 :- end_tests(termcompare).
