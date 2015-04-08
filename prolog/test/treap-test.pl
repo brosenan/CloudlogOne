@@ -154,6 +154,7 @@ test(hook_rotate_right, [true(R =@= [testHook(a(3, X), X)])]) :-
 	findall(H, treap:getHook(T3, a(3, 1), H, _), R).
 
 printTree(nil(Hs), Indent) :- write(Indent), write(nil(Hs)), nl.
+printTree(ph(PH), Indent) :- write(Indent), write(ph(PH)), nl.
 printTree(t(L, K, W, V, H, R), Indent) :- 
 	atom_concat(Indent, '    ', Indent1),
 	printTree(L, Indent1),
@@ -177,14 +178,14 @@ test(capped_set, [throws(treap_error(depth_limit_exceeded([])))]) :-
 	treap:empty(T0),
 	treap:set(T0, 1, 3, 1, 2, T1),
 	treap:set(T1, 2, 2, 2, 2, T2),
-	treap:set(T2, 3, 1, 3, 2, T3).
+	treap:set(T2, 3, 1, 3, 2, _).
 
 test(capped_set_throws_pending_hooks, [throws(treap_error(depth_limit_exceeded([kv(testHook(a(4), foo), 1)])))]) :-
 	treap:empty(T0),
 	treap:setHook(T0, testHook(a(4), foo), 1, T1),
 	treap:set(T1, a(1), 3, 1, 2, T2),
 	treap:set(T2, a(2), 2, 2, 2, T3),
-	treap:set(T3, a(3), 1, 3, 2, T4).
+	treap:set(T3, a(3), 1, 3, 2, _).
 
 test(put_placeholder, [true(R =@= ph(my_placeholder))]) :-
 	treap:empty(T0),
@@ -203,6 +204,11 @@ test(update_placeholder_fails_on_mismatch, [fail]) :-
 	treap:empty(T0),
 	treap:set(T0, a(2, X), 1, T1),
 	treap:putPlaceholder(T1, a(3, X), placeholder1, T2),
-	treap:updatePlaceholder(T2, a(3, X), placeholderXX, placeholder2, T3).
+	treap:updatePlaceholder(T2, a(3, X), placeholderXX, placeholder2, _).
+
+test(placeholders_appear_in_dominated_results, [true(R =@= [(_, ph(abc)), (a(2, 4), 1), (a(2, 5), 1), (a(2, 6), 1)])]) :-
+	abTree(T0),
+	treap:putPlaceholder(T0, a(2, 3), abc, T1),
+	findall((K, V), treap:findDominated(T1, a(2, _), K, V), R).
 
 :- end_tests(treap).

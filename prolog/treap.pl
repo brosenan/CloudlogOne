@@ -81,19 +81,20 @@ treap:delete(t(L, K, _, _, _, R), K1, T) :-
 	  %else
 	    treap:delete(R, K1, T))).
 
+%treap:findDominated(ph(PH), _, _, ph(PH)).
 treap:findDominated(t(L, K, W, V, H, R), D, KOut, VOut) :-
 	if(termcompare:dominates(D, K),
-	  (treap:treeMember(t(L, K, W, V, H, R), KOut, VOut),
-	  termcompare:dominates(D, KOut)),
+	  treap:treeMember(t(L, K, W, V, H, R), D, KOut, VOut),
 	% else
 	  if(D @< K,
 	    treap:findDominated(L, D, KOut, VOut),
 	  % else
 	    treap:findDominated(R, D, KOut, VOut))).
 
-treap:treeMember(t(L, _, _, _, _, _), K, V) :- treap:treeMember(L, K, V).
-treap:treeMember(t(_, K, _, V, _, _), K, V).
-treap:treeMember(t(_, _, _, _, _, R), K, V) :- treap:treeMember(R, K, V).
+treap:treeMember(ph(PH), _, _, ph(PH)).
+treap:treeMember(t(L, _, _, _, _, _), D, K, V) :- treap:treeMember(L, D, K, V).
+treap:treeMember(t(_, K, _, V, _, _), D, K, V) :- termcompare:dominates(D, K).
+treap:treeMember(t(_, _, _, _, _, R), D, K, V) :- treap:treeMember(R, D, K, V).
 
 treap:setHook(T1, H, V, T2) :-
 	treap:hookDomain(H, D),
