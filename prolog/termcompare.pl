@@ -16,8 +16,7 @@ termcompare:dominates(X, Y) :-
 
 termcompare:dominatesList([], []).
 termcompare:dominatesList([X | Xs], [Y | Ys]) :-
-	if(termcompare:dominates(X, Y),
-	  true,
+	if(X == Y,
+	  termcompare:dominates(X, Y),
 	% else
-	  (X == Y,
-	  termcompare:dominatesList(Xs, Ys))).
+	  termcompare:dominatesList(Xs, Ys)).
