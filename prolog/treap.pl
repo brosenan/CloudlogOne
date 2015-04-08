@@ -1,6 +1,7 @@
 :- module(treap, [empty/1, get/3, set/4]).
 :- use_module(util).
 :- use_module(termcompare).
+:- use_module(multiver).
 
 :- multifile hookDomain/2.
 
@@ -81,7 +82,7 @@ treap:delete(t(L, K, _, _, _, R), K1, T) :-
 	  %else
 	    treap:delete(R, K1, T))).
 
-%treap:findDominated(ph(PH), _, _, ph(PH)).
+treap:findDominated(ph(PH), _, _, ph(PH)).
 treap:findDominated(t(L, K, W, V, H, R), D, KOut, VOut) :-
 	if(termcompare:dominates(D, K),
 	  treap:treeMember(t(L, K, W, V, H, R), D, KOut, VOut),
@@ -181,4 +182,24 @@ treap:updatePlaceholder(t(L, K, W, V, H, R), K1, PH1, PH2, T) :-
 	  (treap:updatePlaceholder(R, K1, PH1, PH2, R1),
 	  T = t(L, K, W, V, H, R1))).
 	
+max_depth(30).
 
+multiver:mutate(set(K, V), T1, T2) :- 
+	random(W), 
+	max_depth(D), 
+	treap:set(T1, K, W, V, D, T2).
+
+multiver:query(get(K), T, V) :-
+	treap:get(T, K, V).
+
+multiver:mutate(setHook(H, V), T1, T2) :-
+	treap:setHook(T1, H, V, T2).
+
+multiver:query(getHook(K), T, (H,V)) :-
+	treap:getHook(T, K, H, V).
+
+multiver:mutate(putPlaceholder(K, PH), T1, T2) :-
+	treap:putPlaceholder(T1, K, PH, T2).
+
+multiver:query(findDominated(D), T, (K,V)) :-
+	treap:findDominated(T, D, K, V).

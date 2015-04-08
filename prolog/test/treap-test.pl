@@ -1,6 +1,7 @@
 :- begin_tests(treap).
 :- use_module('../util.pl').
 :- use_module('../treap.pl').
+:- use_module('../multiver.pl').
 
 test(create_empty) :-
 	treap:empty(_).
@@ -210,5 +211,14 @@ test(placeholders_appear_in_dominated_results, [true(R =@= [(_, ph(abc)), (a(2, 
 	abTree(T0),
 	treap:putPlaceholder(T0, a(2, 3), abc, T1),
 	findall((K, V), treap:findDominated(T1, a(2, _), K, V), R).
+
+test(mutations_and_queries, [true((R1,R2,R3) =@= (1, [(testHook(bar, x), 2)], [(_,ph(abc))]))]) :-
+	treap:empty(T0),
+	multiver:mutate(set(foo, 1), T0, T1),
+	multiver:query(get(foo), T1, R1),
+	multiver:mutate(setHook(testHook(bar, x), 2), T1, T2),
+	findall(X, multiver:query(getHook(bar), T2, X), R2),
+	multiver:mutate(putPlaceholder(baz, abc), T2, T3),
+	findall(X, multiver:query(findDominated(baz), T3, X), R3).
 
 :- end_tests(treap).
