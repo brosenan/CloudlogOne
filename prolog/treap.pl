@@ -93,10 +93,12 @@ treap:setHook(T1, H, V, T2) :-
 	treap:hookDomain(H, D),
 	treap:setHook(T1, H, V, D, T2).
 
-treap:setHook(nil(Hs), H, Hv, _, nil([kv(H,Hv)|Hs])).
+treap:setHook(nil(Hs), H, Hv, _, nil(Hs1)) :-
+	treap:updateHookValue(Hs, H, Hv, Hs1).
 treap:setHook(t(L, K, W, V, Hs, R), H, Hv, D, T) :-
 	if(termcompare:dominates(D, K),
-	  T = t(L, K, W, V, [kv(H, Hv) | Hs], R),
+	  (treap:updateHookValue(Hs, H, Hv, Hs1),
+	  T = t(L, K, W, V, Hs1, R)),
 	% else
 	  if(D @< K,
 	    (treap:setHook(L, H, Hv, D, L1),
@@ -145,4 +147,12 @@ treap:splitThreeWays([kv(H, V) | Hs], K, LOut, MOut, ROut) :-
 	  % else
 	    [LOut, MOut, ROut] = [LPrime, MPrime, [kv(H, V) | RPrime]])),
 	treap:splitThreeWays(Hs, K, LPrime, MPrime, RPrime).
+
+treap:updateHookValue([], H, Hv, [kv(H, Hv)]).
+treap:updateHookValue([kv(K, V) | Hs], H, Hv, HsOut) :-
+	if(K =@= H,
+	  HsOut = [kv(H, Hv) | Hs],
+	% else
+	  (HsOut = [kv(K, V) | HsPrime],
+	  treap:updateHookValue(Hs, H, Hv, HsPrime))).
 

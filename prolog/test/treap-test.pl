@@ -116,7 +116,7 @@ test(set_hook, [true(R =@= [[testHook(a(Y, Z), Z), 2], [testHook(a(3, X), X), 1]
 	abTree(T1),
 	treap:setHook(T1, testHook(a(3, X), X), 1, T2),
 	treap:setHook(T2, testHook(a(Y, Z), Z), 2, T3),
-	findall([H,V], treap:getHook(T3, a(3, 1), H, V), R).
+	setof([H,V], treap:getHook(T3, a(3, 1), H, V), R).
 
 test(set_hook_split_nil1, [true(R =@= [[testHook(a(3, X), X), 1]])]) :-
 	treap:empty(T0),
@@ -160,5 +160,17 @@ printTree(t(L, K, W, V, H, R), Indent) :-
 	write(Indent), write([K, W, V, H]), nl,
 	printTree(R, Indent1).
 
+test(trivial_modify_hook_value, [R=[(testHook(foo(X), X), 2)]]) :-
+	treap:empty(T0),
+	treap:setHook(T0, testHook(foo(X), X), 1, T1),
+	treap:setHook(T1, testHook(foo(X), X), 2, T2),
+	findall((H,V), treap:getHook(T2, foo(4), H, V), R).
+
+test(trivial_modify_hook_value, [R=[(testHook(foo(X), X), 2)]]) :-
+	treap:empty(T0),
+	treap:set(T0, foo(2), 7, T1),
+	treap:setHook(T1, testHook(foo(X), X), 1, T2),
+	treap:setHook(T2, testHook(foo(X), X), 2, T3),
+	findall((H,V), treap:getHook(T3, foo(4), H, V), R).
 
 :- end_tests(treap).
