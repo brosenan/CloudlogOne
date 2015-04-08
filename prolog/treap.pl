@@ -22,7 +22,7 @@ treap:set(T1, K, V, T2) :-
 
 treap:set(nil(H), K, W, V, D, t(nil(HL), K, W, V, HM, nil(HR))) :-
 	if(D = 0,
-	  throw(treap_error(depth_limit_exceeded)),
+	  throw(treap_error(depth_limit_exceeded(H))),
 	% else
 	  true),
 	treap:splitThreeWays(H, K, HL, HM, HR).
@@ -32,7 +32,7 @@ treap:set(t(L, K, W, V, H, R), K1, W1, V1, D, TOut) :-
 	if(K == K1, (
 	  L2 = L,
 	  R2 = R,
-	  V2 is V + V1),
+	  V2 = V1),
 	%else
 	  if(K1 @< K, (
 	    treap:set(L, K1, W1, V1, D1, L2),

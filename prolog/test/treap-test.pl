@@ -173,10 +173,17 @@ test(trivial_modify_hook_value, [R=[(testHook(foo(X), X), 2)]]) :-
 	treap:setHook(T2, testHook(foo(X), X), 2, T3),
 	findall((H,V), treap:getHook(T3, foo(4), H, V), R).
 
-test(capped_set, [throws(treap_error(depth_limit_exceeded))]) :-
+test(capped_set, [throws(treap_error(depth_limit_exceeded([])))]) :-
 	treap:empty(T0),
 	treap:set(T0, 1, 3, 1, 2, T1),
 	treap:set(T1, 2, 2, 2, 2, T2),
 	treap:set(T2, 3, 1, 3, 2, T3).
+
+test(capped_set_throws_pending_hooks, [throws(treap_error(depth_limit_exceeded([kv(testHook(a(4), foo), 1)])))]) :-
+	treap:empty(T0),
+	treap:setHook(T0, testHook(a(4), foo), 1, T1),
+	treap:set(T1, a(1), 3, 1, 2, T2),
+	treap:set(T2, a(2), 2, 2, 2, T3),
+	treap:set(T3, a(3), 1, 3, 2, T4).
 
 :- end_tests(treap).
