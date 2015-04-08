@@ -1,5 +1,6 @@
 :- module(treap, [empty/1, get/3, set/5]).
 :- use_module(util).
+:- use_module(termcompare).
 
 treap:empty(nil).
 
@@ -67,3 +68,17 @@ treap:delete(t(L, K, W, V, R), K1, T) :-
 	    treap:delete(L, K1, T),
 	  %else
 	    treap:delete(R, K1, T))).
+
+treap:findDominated(t(L, K, W, V, R), D, KOut, VOut) :-
+	if(termcompare:dominates(D, K),
+	  (treap:treeMember(t(L, K, W, V, R), KOut, VOut),
+	  termcompare:dominates(D, KOut)),
+	% else
+	  if(D @< K,
+	    treap:findDominated(L, D, KOut, VOut),
+	  % else
+	    treap:findDominated(R, D, KOut, VOut))).
+
+treap:treeMember(t(L, _, _, _, _), K, V) :- treap:treeMember(L, K, V).
+treap:treeMember(t(_, K, _, V, _), K, V).
+treap:treeMember(t(_, _, _, _, R), K, V) :- treap:treeMember(R, K, V).

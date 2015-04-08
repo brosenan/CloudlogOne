@@ -86,4 +86,15 @@ test(delete, [true(R1 = nil)]) :-
 	treap:delete(T1, 300, T2),
 	treap:get(T2, 300, R1).
 
+populateTreeFromList(T, [], T).
+populateTreeFromList(T0, [First | Rest], T) :-
+	treap:set(T0, First, 1, T1),
+	populateTreeFromList(T1, Rest, T).
+
+test(find_dominated, [true(R == [[a(2, 4), 1], [a(2, 5), 1], [a(2, 6), 1]])]) :-
+	treap:empty(T0),
+	findall(a(X, Y), (member(X, [1, 2, 3]), member(Y, [4, 5, 6])), L),
+	once(populateTreeFromList(T0, L, T)),
+	findall([K, V], treap:findDominated(T, a(2, _), K, V), R).
+
 :- end_tests(treap).
