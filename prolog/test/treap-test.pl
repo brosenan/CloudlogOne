@@ -46,7 +46,7 @@ populateTree(T0, N0, N, T) :-
 	  treap:set(T0, N0, N0, T1),
 	  plunit_treap:populateTree(T1, N1, N, T))).
 
-maxDepth(nil, 0).
+maxDepth(nil(_), 0).
 maxDepth(t(L, _, _, _, _, R), D) :-
 	maxDepth(L, DL),
 	maxDepth(R, DR),
@@ -91,10 +91,61 @@ populateTreeFromList(T0, [First | Rest], T) :-
 	treap:set(T0, First, 1, T1),
 	populateTreeFromList(T1, Rest, T).
 
-test(find_dominated, [true(R == [[a(2, 4), 1], [a(2, 5), 1], [a(2, 6), 1]])]) :-
+abTree(T) :-
 	treap:empty(T0),
 	findall(a(X, Y), (member(X, [1, 2, 3]), member(Y, [4, 5, 6])), L),
-	once(populateTreeFromList(T0, L, T)),
+	once(populateTreeFromList(T0, L, T)).
+
+test(find_dominated, [true(R == [[a(2, 4), 1], [a(2, 5), 1], [a(2, 6), 1]])]) :-
+	abTree(T),
 	findall([K, V], treap:findDominated(T, a(2, _), K, V), R).
+
+treap:hookDomain(testHook(A, _), A).
+
+test(trivial_set_hook, [true(R =@= [[testHook(a(3, X), X), 1]])]) :-
+	treap:empty(T1),
+	treap:setHook(T1, testHook(a(3, X), X), 1, T2),
+	findall([H,V], treap:getHook(T2, a(3, 1), H, V), R).
+
+test(trivial_set_hook_mismatch, [R =@= []]) :-
+	treap:empty(T1),
+	treap:setHook(T1, testHook(a(3, X), X), 1, T2),
+	findall([H,V], treap:getHook(T2, a(2, 1), H, V), R).
+
+test(set_hook, [true(R =@= [[testHook(a(Y, Z), Z), 2], [testHook(a(3, X), X), 1]])]) :-
+	abTree(T1),
+	treap:setHook(T1, testHook(a(3, X), X), 1, T2),
+	treap:setHook(T2, testHook(a(Y, Z), Z), 2, T3),
+	findall([H,V], treap:getHook(T3, a(3, 1), H, V), R).
+
+test(set_hook_left_rotate, [true(R =@= [[testHook(a(3, X), X), 1]])]) :-
+	treap:empty(T0),
+	treap:setHook(T0, testHook(a(3, X), X), 1, T1),
+	treap:set(T1, a(2, 1), 0, 1, T2),
+	treap:set(T2, a(3, 1), 1, 1, T3),
+	findall([H,V], treap:getHook(T3, a(3, 1), H, V), R).
+
+test(set_hook_right_rotate, [true(R =@= [[testHook(a(3, X), X), 1]])]) :-
+	treap:empty(T0),
+	treap:setHook(T0, testHook(a(3, X), X), 1, T1),
+	treap:set(T1, a(5, 1), 0, 1, T2),
+	treap:set(T2, a(4, 1), 1, 1, T3),
+	treap:set(T3, a(3, 1), 2, 1, T4),
+	findall([H,V], treap:getHook(T4, a(3, 1), H, V), R).
+
+test(misplaced_hook, [true(R =@= [])]) :-
+	treap:empty(T0),
+	treap:setHook(T0, testHook(a(3, X), X), 1, T1),
+	treap:set(T1, a(4, 1), 0, 1, T2),
+	findall([H,V], treap:getHook(T2, a(4, 1), H, V), R).
+
+
+printTree(nil(Hs), Indent) :- write(Indent), write(nil(Hs)), nl.
+printTree(t(L, K, W, V, H, R), Indent) :- 
+	atom_concat(Indent, '    ', Indent1),
+	printTree(L, Indent1),
+	write(Indent), write([K, W, V, H]), nl,
+	printTree(R, Indent1).
+
 
 :- end_tests(treap).
