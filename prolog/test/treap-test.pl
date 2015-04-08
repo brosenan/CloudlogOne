@@ -21,12 +21,12 @@ test(add_and_retrieve_two_values, [true([R1, R2] == [2, 3])]) :-
 	treap:get(T2, foo, R1),
 	treap:get(T2, bar, R2).
 
-test(left_rotation, [true(T2 = t(_, b, 2, 2, _))]) :-
+test(left_rotation, [true(T2 = t(_, b, 2, 2, _, _))]) :-
 	treap:empty(T0),
 	treap:set(T0, a, 1, 3, T1),
 	treap:set(T1, b, 2, 2, T2).
 
-test(right_rotation, [true(T2 = t(_, a, 2, 2, _))]) :-
+test(right_rotation, [true(T2 = t(_, a, 2, 2, _, _))]) :-
 	treap:empty(T0),
 	treap:set(T0, b, 1, 3, T1),
 	treap:set(T1, a, 2, 2, T2).
@@ -47,7 +47,7 @@ populateTree(T0, N0, N, T) :-
 	  plunit_treap:populateTree(T1, N1, N, T))).
 
 maxDepth(nil, 0).
-maxDepth(t(L, _, _, _, R), D) :-
+maxDepth(t(L, _, _, _, _, R), D) :-
 	maxDepth(L, DL),
 	maxDepth(R, DR),
 	D is max(DL, DR) + 1.
