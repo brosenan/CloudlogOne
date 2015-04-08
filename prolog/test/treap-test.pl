@@ -52,7 +52,7 @@ maxDepth(t(L, _, _, _, R), D) :-
 	maxDepth(R, DR),
 	D is max(DL, DR) + 1.
 
-test(max_depth, [true(D < 27)]) :-
+test(max_depth, [true(D < 28)]) :-
 	treap:empty(T0),
 	populateTree(T0, 0, 1000, T),
 	maxDepth(T, D).
@@ -77,7 +77,7 @@ test(merge_treaps, []) :-
 	populateTree(TA0, 0, 1000, TA),
 	treap:empty(TB0),
 	populateTree(TB0, 1000, 2000, TB),
-	treap:mergeTree(TA, TB, T),
+	once(treap:mergeTree(TA, TB, T)),
 	validateTree(T, 0, 2000).
 
 test(delete, [true(R1 = nil)]) :-

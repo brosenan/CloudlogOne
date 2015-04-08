@@ -61,7 +61,7 @@ treap:mergeTree(t(L1, K1, W1, V1, R1), t(L2, K2, W2, V2, R2), T) :-
 
 treap:delete(t(L, K, W, V, R), K1, T) :-
 	if(K = K1,
-	  treap:mergeTree(L, R, T),
+	  once(treap:mergeTree(L, R, T)),
 	%else
 	  if(K1 @< K,
 	    treap:delete(L, K1, T),
