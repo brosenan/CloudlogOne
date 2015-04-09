@@ -20,16 +20,16 @@ treap:get(t(L, K, _, V, _, R), K1, V1) :-
 
 treap:add(T1, K, V, T2) :-
 	random(W),
-	treap:add(T1, K, W, V, -1, T2).
+	treap:add(T1, K, W, V, -1, T2, _).
 
-treap:add(nil(H), K, W, V, D, t(nil(HL), K, W, V, HM, nil(HR))) :-
+treap:add(nil(H), K, W, V, D, t(nil(HL), K, W, V, HM, nil(HR)), _) :-
 	if(D = 0,
 	  throw(treap_error(depth_limit_exceeded(H))),
 	% else
 	  true),
 	treap:splitThreeWays(H, K, HL, HM, HR).
 
-treap:add(t(L, K, W, V, H, R), K1, W1, V1, D, TOut) :-
+treap:add(t(L, K, W, V, H, R), K1, W1, V1, D, TOut, _) :-
 	D1 is D - 1,
 	if(K == K1,
 	  (V2 is V + V1,
@@ -39,13 +39,13 @@ treap:add(t(L, K, W, V, H, R), K1, W1, V1, D, TOut) :-
 	    TOut = t(L, K, W, V2, H, R))),
 	%else
 	  if(K1 @< K, (
-	    treap:add(L, K1, W1, V1, D1, L2),
+	    treap:add(L, K1, W1, V1, D1, L2, _),
 	    R2 = R,
 	    V2 = V,
 	    treap:rotateRight(t(L2, K, W, V2, H, R2), TOut)),
 	  %else
 	    (L2 = L,
-	    treap:add(R, K1, W1, V1, D1, R2),
+	    treap:add(R, K1, W1, V1, D1, R2, _),
 	    V2 = V,
 	    treap:rotateLeft(t(L2, K, W, V2, H, R2), TOut)))).
 
@@ -193,7 +193,7 @@ max_depth(30).
 multiver:mutate(set(K, V), T1, T2) :- 
 	random(W), 
 	max_depth(D), 
-	treap:add(T1, K, W, V, D, T2).
+	treap:add(T1, K, W, V, D, T2, _).
 
 multiver:query(get(K), T, V) :-
 	treap:get(T, K, V).

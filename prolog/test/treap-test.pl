@@ -12,31 +12,31 @@ test(get_returns_zero, [true(R == 0)]) :-
 
 test(add_and_retrieve_value, [true(R == 3)]) :-
 	treap:empty(T0),
-	treap:add(T0, foo, 1, 3, -1, T1),
+	treap:add(T0, foo, 1, 3, -1, T1, _),
 	treap:get(T1, foo, R).
 
 test(add_and_retrieve_two_values, [true([R1, R2] == [2, 3])]) :-
 	treap:empty(T0),
-	treap:add(T0, foo, 1, 2, -1, T1),
-	treap:add(T1, bar, 2, 3, -1, T2),
+	treap:add(T0, foo, 1, 2, -1, T1, _),
+	treap:add(T1, bar, 2, 3, -1, T2, _),
 	treap:get(T2, foo, R1),
 	treap:get(T2, bar, R2).
 
 test(add_acts_as_add, [true(R == 5)]) :-
 	treap:empty(T0),
-	treap:add(T0, foo, 1, 3, -1, T1),
-	treap:add(T1, foo, 1, 2, -1, T2),
+	treap:add(T0, foo, 1, 3, -1, T1, _),
+	treap:add(T1, foo, 1, 2, -1, T2, _),
 	treap:get(T2, foo, R).
 
 test(left_rotation, [true(T2 = t(_, b, 2, 2, _, _))]) :-
 	treap:empty(T0),
-	treap:add(T0, a, 1, 3, -1, T1),
-	treap:add(T1, b, 2, 2, -1, T2).
+	treap:add(T0, a, 1, 3, -1, T1, _),
+	treap:add(T1, b, 2, 2, -1, T2, _).
 
 test(right_rotation, [true(T2 = t(_, a, 2, 2, _, _))]) :-
 	treap:empty(T0),
-	treap:add(T0, b, 1, 3, -1, T1),
-	treap:add(T1, a, 2, 2, -1, T2).
+	treap:add(T0, b, 1, 3, -1, T1, _),
+	treap:add(T1, a, 2, 2, -1, T2, _).
 
 test(add_without_weight, [true([R1, R2] = [3, 2])]) :-
 	treap:empty(T0),
@@ -128,36 +128,36 @@ test(add_hook, [true(R =@= [[testHook(a(Y, Z), Z), 2], [testHook(a(3, X), X), 1]
 test(add_hook_split_nil1, [true(R =@= [[testHook(a(3, X), X), 1]])]) :-
 	treap:empty(T0),
 	treap:addHook(T0, testHook(a(3, X), X), 1, T1),
-	treap:add(T1, a(2, 1), 0, 1, -1, T2),
-	treap:add(T2, a(3, 1), 1, 1, -1, T3),
+	treap:add(T1, a(2, 1), 0, 1, -1, T2, _),
+	treap:add(T2, a(3, 1), 1, 1, -1, T3, _),
 	findall([H,V], treap:getHook(T3, a(3, 1), H, V), R).
 
 test(add_hook_split_nil2, [true(R =@= [[testHook(a(3, X), X), 1]])]) :-
 	treap:empty(T0),
 	treap:addHook(T0, testHook(a(3, X), X), 1, T1),
-	treap:add(T1, a(5, 1), 0, 1, -1, T2),
-	treap:add(T2, a(4, 1), 1, 1, -1, T3),
-	treap:add(T3, a(3, 1), 2, 1, -1, T4),
+	treap:add(T1, a(5, 1), 0, 1, -1, T2, _),
+	treap:add(T2, a(4, 1), 1, 1, -1, T3, _),
+	treap:add(T3, a(3, 1), 2, 1, -1, T4, _),
 	findall([H,V], treap:getHook(T4, a(3, 1), H, V), R).
 
 test(misplaced_hook, [true(R =@= [])]) :-
 	treap:empty(T0),
 	treap:addHook(T0, testHook(a(3, X), X), 1, T1),
-	treap:add(T1, a(4, 1), 0, 1, -1, T2),
+	treap:add(T1, a(4, 1), 0, 1, -1, T2, _),
 	findall([H,V], treap:getHook(T2, a(4, 1), H, V), R).
 
 test(hook_rotate_left, [true(R =@= [testHook(a(3, X), X)])]) :-
 	treap:empty(T0),
-	treap:add(T0, a(3, 1), 0, 1, -1, T1),
+	treap:add(T0, a(3, 1), 0, 1, -1, T1, _),
 	treap:addHook(T1, testHook(a(3, X), X), 1, T2),
-	treap:add(T2, a(3, 2), 1, 1, -1, T3),
+	treap:add(T2, a(3, 2), 1, 1, -1, T3, _),
 	findall(H, treap:getHook(T3, a(3, 2), H, _), R).
 
 test(hook_rotate_right, [true(R =@= [testHook(a(3, X), X)])]) :-
 	treap:empty(T0),
-	treap:add(T0, a(3, 2), 0, 1, -1, T1),
+	treap:add(T0, a(3, 2), 0, 1, -1, T1, _),
 	treap:addHook(T1, testHook(a(3, X), X), 1, T2),
-	treap:add(T2, a(3, 1), 1, 1, -1, T3),
+	treap:add(T2, a(3, 1), 1, 1, -1, T3, _),
 	findall(H, treap:getHook(T3, a(3, 1), H, _), R).
 
 printTree(nil(Hs), Indent) :- write(Indent), write(nil(Hs)), nl.
@@ -183,16 +183,16 @@ test(modify_hook_value, [R=[(testHook(foo(X), X), 3)]]) :-
 
 test(capped_set, [throws(treap_error(depth_limit_exceeded([])))]) :-
 	treap:empty(T0),
-	treap:add(T0, 1, 3, 1, 2, T1),
-	treap:add(T1, 2, 2, 2, 2, T2),
-	treap:add(T2, 3, 1, 3, 2, _).
+	treap:add(T0, 1, 3, 1, 2, T1, _),
+	treap:add(T1, 2, 2, 2, 2, T2, _),
+	treap:add(T2, 3, 1, 3, 2, _, _).
 
 test(capped_set_throws_pending_hooks, [throws(treap_error(depth_limit_exceeded([kv(testHook(a(4), foo), 1)])))]) :-
 	treap:empty(T0),
 	treap:addHook(T0, testHook(a(4), foo), 1, T1),
-	treap:add(T1, a(1), 3, 1, 2, T2),
-	treap:add(T2, a(2), 2, 2, 2, T3),
-	treap:add(T3, a(3), 1, 3, 2, _).
+	treap:add(T1, a(1), 3, 1, 2, T2, _),
+	treap:add(T2, a(2), 2, 2, 2, T3, _),
+	treap:add(T3, a(3), 1, 3, 2, _, _).
 
 test(put_placeholder, [true(R =@= ph(my_placeholder))]) :-
 	treap:empty(T0),
