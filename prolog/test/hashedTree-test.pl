@@ -15,15 +15,20 @@ test(add, [(R1, R2) == (3, '2jmj7l5rSw0yVb/vlWAYkK/YBwk=')]) :-
 	multiver:patch(h_add(foo, 3, _), T0, T1),
 	multiver:query(h(get(foo)), T1, R1),
 	multiver:query(getHash, T1, H1),
-	H1 \= '2jmj7l5rSw0yVb/vlWAYkK/YBwk=',   % Not the empty string
+	util:enforce(H1 \= '2jmj7l5rSw0yVb/vlWAYkK/YBwk='),   % Not the empty string
 	multiver:patch(h_add(foo, -3, _), T1, T2),
 	multiver:query(getHash, T2, R2).
 
-test(add_hook, []) :-
+test(add_hook, [R == (testHook(foo, bar), 3)]) :-
 	hashedTree:empty(T0),
 	multiver:query(getHash, T0, H0),
-	multiver:patch(h(addHook(testHook(foo, bar), 3, _)), T0, T1),
+	multiver:patch(h_addHook(testHook(foo, bar), 3, _), T0, T1),
+	multiver:query(h(getHook(foo)), T1, R),
 	multiver:query(getHash, T1, H1),
-	H1 \= H0.
+	util:enforce(H1 \= H0),
+	multiver:patch(h_addHook(testHook(foo, bar), -3, _), T1, T2),
+	multiver:query(getHash, T2, H2),
+	util:enforce(H2 == H0).
+	
 
 :- end_tests(hashedTree).
