@@ -1,6 +1,6 @@
 :- module(multiver, []).
 
-:- multifile mutate/3.
+:- multifile patch/3.
 :- multifile query/3.
 
 multiver:empty(_).
