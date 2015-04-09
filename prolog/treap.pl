@@ -33,7 +33,10 @@ treap:add(t(L, K, W, V, H, R), K1, W1, V1, D, TOut) :-
 	D1 is D - 1,
 	if(K == K1,
 	  (V2 is V + V1,
-	  TOut = t(L, K, W, V2, H, R)),
+	  if(V2 == 0,
+	    once(treap:mergeTree(L, R, TOut)),
+	  % else
+	    TOut = t(L, K, W, V2, H, R))),
 	%else
 	  if(K1 @< K, (
 	    treap:add(L, K1, W1, V1, D1, L2),
@@ -159,7 +162,10 @@ treap:updateHookValue([], H, Hv, [kv(H, Hv)]).
 treap:updateHookValue([kv(K, V) | Hs], H, Hv, HsOut) :-
 	if(K =@= H,
 	  (Hv1 is V + Hv,
-	  HsOut = [kv(H, Hv1) | Hs]),
+	  if(Hv1 == 0,
+	    HsOut = Hs,
+	  % else
+	    HsOut = [kv(H, Hv1) | Hs])),
 	% else
 	  (HsOut = [kv(K, V) | HsPrime],
 	  treap:updateHookValue(Hs, H, Hv, HsPrime))).

@@ -227,4 +227,14 @@ test(mutations_and_queries, [true((R1,R2,R3) =@= (1, [(testHook(bar, x), 2)], [(
 	multiver:mutate(putPlaceholder(baz, abc), T2, T3),
 	findall(X, multiver:query(findDominated(baz), T3, X), R3).
 
+test(zero_values_should_be_removed, [true(T2 == T0)]) :-
+	treap:empty(T0),
+	treap:add(T0, foo, 3, T1),
+	treap:add(T1, foo, -3, T2).
+
+test(zero_hook_values_should_be_removed, [true(T2 == T0)]) :-
+	treap:empty(T0),
+	treap:addHook(T0, testHook(foo, 2), 3, T1),
+	treap:addHook(T1, testHook(foo, 2), -3, T2).
+
 :- end_tests(treap).
