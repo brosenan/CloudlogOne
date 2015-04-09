@@ -8,7 +8,7 @@ hashedTree:empty(hashed(T, H)) :-
 multiver:query(h(Q), hashed(T, _), V) :-
 	multiver:query(Q, T, V).
 
-multiver:query(getHash, hashed(_, H), B64) :-
+multiver:query(getHash, hashed(_, H), B64) :- !, %%%%
 	util:codesToB64(H, B64).
 
 multiver:patch(h_add(K, V, V1), hashed(T1, H1), hashed(T2, H2)) :-
