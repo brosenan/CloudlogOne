@@ -193,13 +193,13 @@ test(add_hook_returns_new_value, [(R1, R2) == (1, 3)]) :-
 	treap:addHook(T2, testHook(foo(X), X), 1, T3, R1),
 	treap:addHook(T3, testHook(foo(X), X), 2, _, R2).
 
-test(capped_set, [throws(treap_error(depth_limit_exceeded([])))]) :-
+test(capped_add, [throws(treap_error(depth_limit_exceeded([])))]) :-
 	treap:empty(T0),
 	treap:add(T0, 1, 3, 1, 2, T1, _),
 	treap:add(T1, 2, 2, 2, 2, T2, _),
 	treap:add(T2, 3, 1, 3, 2, _, _).
 
-test(capped_set_throws_pending_hooks, [throws(treap_error(depth_limit_exceeded([kv(testHook(a(4), foo), 1)])))]) :-
+test(capped_add_throws_pending_hooks, [throws(treap_error(depth_limit_exceeded([kv(testHook(a(4), foo), 1)])))]) :-
 	treap:empty(T0),
 	treap:addHook(T0, testHook(a(4), foo), 1, T1, _),
 	treap:add(T1, a(1), 3, 1, 2, T2, _),
@@ -232,9 +232,9 @@ test(placeholders_appear_in_dominated_results, [true(R =@= [(_, ph(abc)), (a(2, 
 
 test(mutations_and_queries, [true((R1,R2,R3) =@= (1, [(testHook(bar, x), 2)], [(_,ph(abc))]))]) :-
 	treap:empty(T0),
-	multiver:mutate(set(foo, 1), T0, T1),
+	multiver:mutate(add(foo, 1), T0, T1),
 	multiver:query(get(foo), T1, R1),
-	multiver:mutate(setHook(testHook(bar, x), 2), T1, T2),
+	multiver:mutate(addHook(testHook(bar, x), 2), T1, T2),
 	findall(X, multiver:query(getHook(bar), T2, X), R2),
 	multiver:mutate(putPlaceholder(baz, abc), T2, T3),
 	findall(X, multiver:query(findDominated(baz), T3, X), R3).

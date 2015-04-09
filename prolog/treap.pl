@@ -185,9 +185,9 @@ treap:updatePlaceholder(t(L, K, W, V, H, R), K1, PH1, PH2, T) :-
 	  (treap:updatePlaceholder(R, K1, PH1, PH2, R1),
 	  T = t(L, K, W, V, H, R1))).
 	
-max_depth(30).
+max_depth(20).
 
-multiver:mutate(set(K, V), T1, T2) :- 
+multiver:mutate(add(K, V), T1, T2) :- 
 	random(W), 
 	max_depth(D), 
 	treap:add(T1, K, W, V, D, T2, _).
@@ -195,7 +195,7 @@ multiver:mutate(set(K, V), T1, T2) :-
 multiver:query(get(K), T, V) :-
 	treap:get(T, K, V).
 
-multiver:mutate(setHook(H, V), T1, T2) :-
+multiver:mutate(addHook(H, V), T1, T2) :-
 	treap:addHook(T1, H, V, T2, _).
 
 multiver:query(getHook(K), T, (H,V)) :-
