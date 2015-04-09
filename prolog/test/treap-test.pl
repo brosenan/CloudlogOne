@@ -6,7 +6,7 @@
 test(create_empty) :-
 	treap:empty(_).
 
-test(get_returns_nil, [true(R == nil)]) :-
+test(get_returns_zero, [true(R == 0)]) :-
 	treap:empty(T0),
 	treap:get(T0, foo, R).
 
@@ -81,7 +81,7 @@ test(merge_treaps, []) :-
 	once(treap:mergeTree(TA, TB, T)),
 	validateTree(T, 0, 2000).
 
-test(delete, [true(R1 = nil)]) :-
+test(delete, [true(R1 = 0)]) :-
 	treap:empty(T0),
 	populateTree(T0, 0, 1000, T1),
 	treap:delete(T1, 300, T2),

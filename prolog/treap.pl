@@ -7,7 +7,7 @@
 
 treap:empty(nil([])).
 
-treap:get(nil(_), _, nil).
+treap:get(nil(_), _, 0).
 treap:get(ph(PH), _, ph(PH)).
 treap:get(t(L, K, _, V, _, R), K1, V1) :-
 	if(K = K1,
