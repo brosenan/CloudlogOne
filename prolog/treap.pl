@@ -96,22 +96,22 @@ treap:treeMember(t(L, _, _, _, _, _), D, K, V) :- treap:treeMember(L, D, K, V).
 treap:treeMember(t(_, K, _, V, _, _), D, K, V) :- termcompare:dominates(D, K).
 treap:treeMember(t(_, _, _, _, _, R), D, K, V) :- treap:treeMember(R, D, K, V).
 
-treap:addHook(T1, H, V, T2) :-
+treap:addHook(T1, H, V, T2, NewV) :-
 	treap:hookDomain(H, D),
-	treap:addHook(T1, H, V, D, T2).
+	treap:addHook(T1, H, V, D, T2, NewV).
 
-treap:addHook(nil(Hs), H, Hv, _, nil(Hs1)) :-
-	treap:updateHookValue(Hs, H, Hv, Hs1).
-treap:addHook(t(L, K, W, V, Hs, R), H, Hv, D, T) :-
+treap:addHook(nil(Hs), H, Hv, _, nil(Hs1), NewV) :-
+	treap:updateHookValue(Hs, H, Hv, Hs1, NewV).
+treap:addHook(t(L, K, W, V, Hs, R), H, Hv, D, T, NewV) :-
 	if(termcompare:dominates(D, K),
-	  (treap:updateHookValue(Hs, H, Hv, Hs1),
+	  (treap:updateHookValue(Hs, H, Hv, Hs1, NewV),
 	  T = t(L, K, W, V, Hs1, R)),
 	% else
 	  if(D @< K,
-	    (treap:addHook(L, H, Hv, D, L1),
+	    (treap:addHook(L, H, Hv, D, L1, NewV),
 	    T = t(L1, K, W, V, Hs, R)),
 	  % else
-	    (treap:addHook(R, H, Hv, D, R1),
+	    (treap:addHook(R, H, Hv, D, R1, NewV),
 	    T = t(L, K, W, V, Hs, R1)))).
 	    
 
@@ -155,8 +155,8 @@ treap:splitThreeWays([kv(H, V) | Hs], K, LOut, MOut, ROut) :-
 	    [LOut, MOut, ROut] = [LPrime, MPrime, [kv(H, V) | RPrime]])),
 	treap:splitThreeWays(Hs, K, LPrime, MPrime, RPrime).
 
-treap:updateHookValue([], H, Hv, [kv(H, Hv)]).
-treap:updateHookValue([kv(K, V) | Hs], H, Hv, HsOut) :-
+treap:updateHookValue([], H, Hv, [kv(H, Hv)], Hv).
+treap:updateHookValue([kv(K, V) | Hs], H, Hv, HsOut, Hv1) :-
 	if(K =@= H,
 	  (Hv1 is V + Hv,
 	  if(Hv1 == 0,
@@ -165,7 +165,7 @@ treap:updateHookValue([kv(K, V) | Hs], H, Hv, HsOut) :-
 	    HsOut = [kv(H, Hv1) | Hs])),
 	% else
 	  (HsOut = [kv(K, V) | HsPrime],
-	  treap:updateHookValue(Hs, H, Hv, HsPrime))).
+	  treap:updateHookValue(Hs, H, Hv, HsPrime, Hv1))).
 
 treap:putPlaceholder(nil(_), _, PH, ph(PH)).
 treap:putPlaceholder(t(L, K, W, V, H, R), K1, PH, T) :-
@@ -196,7 +196,7 @@ multiver:query(get(K), T, V) :-
 	treap:get(T, K, V).
 
 multiver:mutate(setHook(H, V), T1, T2) :-
-	treap:addHook(T1, H, V, T2).
+	treap:addHook(T1, H, V, T2, _).
 
 multiver:query(getHook(K), T, (H,V)) :-
 	treap:getHook(T, K, H, V).

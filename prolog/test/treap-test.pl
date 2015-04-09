@@ -111,30 +111,30 @@ treap:hookDomain(testHook(A, _), A).
 
 test(trivial_add_hook, [true(R =@= [[testHook(a(3, X), X), 1]])]) :-
 	treap:empty(T1),
-	treap:addHook(T1, testHook(a(3, X), X), 1, T2),
+	treap:addHook(T1, testHook(a(3, X), X), 1, T2, _),
 	findall([H,V], treap:getHook(T2, a(3, 1), H, V), R).
 
 test(trivial_add_hook_mismatch, [R =@= []]) :-
 	treap:empty(T1),
-	treap:addHook(T1, testHook(a(3, X), X), 1, T2),
+	treap:addHook(T1, testHook(a(3, X), X), 1, T2, _),
 	findall([H,V], treap:getHook(T2, a(2, 1), H, V), R).
 
 test(add_hook, [true(R =@= [[testHook(a(Y, Z), Z), 2], [testHook(a(3, X), X), 1]])]) :-
 	abTree(T1),
-	treap:addHook(T1, testHook(a(3, X), X), 1, T2),
-	treap:addHook(T2, testHook(a(Y, Z), Z), 2, T3),
+	treap:addHook(T1, testHook(a(3, X), X), 1, T2, _),
+	treap:addHook(T2, testHook(a(Y, Z), Z), 2, T3, _),
 	setof([H,V], treap:getHook(T3, a(3, 1), H, V), R).
 
 test(add_hook_split_nil1, [true(R =@= [[testHook(a(3, X), X), 1]])]) :-
 	treap:empty(T0),
-	treap:addHook(T0, testHook(a(3, X), X), 1, T1),
+	treap:addHook(T0, testHook(a(3, X), X), 1, T1, _),
 	treap:add(T1, a(2, 1), 0, 1, -1, T2, _),
 	treap:add(T2, a(3, 1), 1, 1, -1, T3, _),
 	findall([H,V], treap:getHook(T3, a(3, 1), H, V), R).
 
 test(add_hook_split_nil2, [true(R =@= [[testHook(a(3, X), X), 1]])]) :-
 	treap:empty(T0),
-	treap:addHook(T0, testHook(a(3, X), X), 1, T1),
+	treap:addHook(T0, testHook(a(3, X), X), 1, T1, _),
 	treap:add(T1, a(5, 1), 0, 1, -1, T2, _),
 	treap:add(T2, a(4, 1), 1, 1, -1, T3, _),
 	treap:add(T3, a(3, 1), 2, 1, -1, T4, _),
@@ -142,21 +142,21 @@ test(add_hook_split_nil2, [true(R =@= [[testHook(a(3, X), X), 1]])]) :-
 
 test(misplaced_hook, [true(R =@= [])]) :-
 	treap:empty(T0),
-	treap:addHook(T0, testHook(a(3, X), X), 1, T1),
+	treap:addHook(T0, testHook(a(3, X), X), 1, T1, _),
 	treap:add(T1, a(4, 1), 0, 1, -1, T2, _),
 	findall([H,V], treap:getHook(T2, a(4, 1), H, V), R).
 
 test(hook_rotate_left, [true(R =@= [testHook(a(3, X), X)])]) :-
 	treap:empty(T0),
 	treap:add(T0, a(3, 1), 0, 1, -1, T1, _),
-	treap:addHook(T1, testHook(a(3, X), X), 1, T2),
+	treap:addHook(T1, testHook(a(3, X), X), 1, T2, _),
 	treap:add(T2, a(3, 2), 1, 1, -1, T3, _),
 	findall(H, treap:getHook(T3, a(3, 2), H, _), R).
 
 test(hook_rotate_right, [true(R =@= [testHook(a(3, X), X)])]) :-
 	treap:empty(T0),
 	treap:add(T0, a(3, 2), 0, 1, -1, T1, _),
-	treap:addHook(T1, testHook(a(3, X), X), 1, T2),
+	treap:addHook(T1, testHook(a(3, X), X), 1, T2, _),
 	treap:add(T2, a(3, 1), 1, 1, -1, T3, _),
 	findall(H, treap:getHook(T3, a(3, 1), H, _), R).
 
@@ -170,16 +170,28 @@ printTree(t(L, K, W, V, H, R), Indent) :-
 
 test(trivial_modify_hook_value, [R=[(testHook(foo(X), X), 3)]]) :-
 	treap:empty(T0),
-	treap:addHook(T0, testHook(foo(X), X), 1, T1),
-	treap:addHook(T1, testHook(foo(X), X), 2, T2),
+	treap:addHook(T0, testHook(foo(X), X), 1, T1, _),
+	treap:addHook(T1, testHook(foo(X), X), 2, T2, _),
 	findall((H,V), treap:getHook(T2, foo(4), H, V), R).
+
+test(trivial_add_hook_returns_value, [(R1, R2) == (1, 3)]) :-
+	treap:empty(T0),
+	treap:addHook(T0, testHook(foo(X), X), 1, T1, R1),
+	treap:addHook(T1, testHook(foo(X), X), 2, T2, R2).
 
 test(modify_hook_value, [R=[(testHook(foo(X), X), 3)]]) :-
 	treap:empty(T0),
 	treap:add(T0, foo(2), 7, T1),
-	treap:addHook(T1, testHook(foo(X), X), 1, T2),
-	treap:addHook(T2, testHook(foo(X), X), 2, T3),
+	treap:addHook(T1, testHook(foo(X), X), 1, T2, _),
+	treap:addHook(T2, testHook(foo(X), X), 2, T3, _),
 	findall((H,V), treap:getHook(T3, foo(4), H, V), R).
+
+test(add_hook_returns_new_value, [(R1, R2) == (1, 3)]) :-
+	treap:empty(T0),
+	treap:add(T0, foo(2), 7, T1),
+	treap:add(T1, bar, 10, 3, -1, T2, _), % bar will be the root
+	treap:addHook(T2, testHook(foo(X), X), 1, T3, R1),
+	treap:addHook(T3, testHook(foo(X), X), 2, _, R2).
 
 test(capped_set, [throws(treap_error(depth_limit_exceeded([])))]) :-
 	treap:empty(T0),
@@ -189,7 +201,7 @@ test(capped_set, [throws(treap_error(depth_limit_exceeded([])))]) :-
 
 test(capped_set_throws_pending_hooks, [throws(treap_error(depth_limit_exceeded([kv(testHook(a(4), foo), 1)])))]) :-
 	treap:empty(T0),
-	treap:addHook(T0, testHook(a(4), foo), 1, T1),
+	treap:addHook(T0, testHook(a(4), foo), 1, T1, _),
 	treap:add(T1, a(1), 3, 1, 2, T2, _),
 	treap:add(T2, a(2), 2, 2, 2, T3, _),
 	treap:add(T3, a(3), 1, 3, 2, _, _).
@@ -234,7 +246,7 @@ test(zero_values_should_be_removed, [true(T2 == T0)]) :-
 
 test(zero_hook_values_should_be_removed, [true(T2 == T0)]) :-
 	treap:empty(T0),
-	treap:addHook(T0, testHook(foo, 2), 3, T1),
-	treap:addHook(T1, testHook(foo, 2), -3, T2).
+	treap:addHook(T0, testHook(foo, 2), 3, T1, _),
+	treap:addHook(T1, testHook(foo, 2), -3, T2, _).
 
 :- end_tests(treap).
