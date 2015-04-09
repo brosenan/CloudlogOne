@@ -96,22 +96,22 @@ treap:treeMember(t(L, _, _, _, _, _), D, K, V) :- treap:treeMember(L, D, K, V).
 treap:treeMember(t(_, K, _, V, _, _), D, K, V) :- termcompare:dominates(D, K).
 treap:treeMember(t(_, _, _, _, _, R), D, K, V) :- treap:treeMember(R, D, K, V).
 
-treap:setHook(T1, H, V, T2) :-
+treap:addHook(T1, H, V, T2) :-
 	treap:hookDomain(H, D),
-	treap:setHook(T1, H, V, D, T2).
+	treap:addHook(T1, H, V, D, T2).
 
-treap:setHook(nil(Hs), H, Hv, _, nil(Hs1)) :-
+treap:addHook(nil(Hs), H, Hv, _, nil(Hs1)) :-
 	treap:updateHookValue(Hs, H, Hv, Hs1).
-treap:setHook(t(L, K, W, V, Hs, R), H, Hv, D, T) :-
+treap:addHook(t(L, K, W, V, Hs, R), H, Hv, D, T) :-
 	if(termcompare:dominates(D, K),
 	  (treap:updateHookValue(Hs, H, Hv, Hs1),
 	  T = t(L, K, W, V, Hs1, R)),
 	% else
 	  if(D @< K,
-	    (treap:setHook(L, H, Hv, D, L1),
+	    (treap:addHook(L, H, Hv, D, L1),
 	    T = t(L1, K, W, V, Hs, R)),
 	  % else
-	    (treap:setHook(R, H, Hv, D, R1),
+	    (treap:addHook(R, H, Hv, D, R1),
 	    T = t(L, K, W, V, Hs, R1)))).
 	    
 
@@ -158,7 +158,8 @@ treap:splitThreeWays([kv(H, V) | Hs], K, LOut, MOut, ROut) :-
 treap:updateHookValue([], H, Hv, [kv(H, Hv)]).
 treap:updateHookValue([kv(K, V) | Hs], H, Hv, HsOut) :-
 	if(K =@= H,
-	  HsOut = [kv(H, Hv) | Hs],
+	  (Hv1 is V + Hv,
+	  HsOut = [kv(H, Hv1) | Hs]),
 	% else
 	  (HsOut = [kv(K, V) | HsPrime],
 	  treap:updateHookValue(Hs, H, Hv, HsPrime))).
@@ -192,7 +193,7 @@ multiver:query(get(K), T, V) :-
 	treap:get(T, K, V).
 
 multiver:mutate(setHook(H, V), T1, T2) :-
-	treap:setHook(T1, H, V, T2).
+	treap:addHook(T1, H, V, T2).
 
 multiver:query(getHook(K), T, (H,V)) :-
 	treap:getHook(T, K, H, V).
