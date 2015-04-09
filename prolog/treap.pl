@@ -31,10 +31,9 @@ treap:add(nil(H), K, W, V, D, t(nil(HL), K, W, V, HM, nil(HR))) :-
 
 treap:add(t(L, K, W, V, H, R), K1, W1, V1, D, TOut) :-
 	D1 is D - 1,
-	if(K == K1, (
-	  L2 = L,
-	  R2 = R,
-	  V2 = V1),
+	if(K == K1,
+	  (V2 is V + V1,
+	  TOut = t(L, K, W, V2, H, R)),
 	%else
 	  if(K1 @< K, (
 	    treap:add(L, K1, W1, V1, D1, L2),

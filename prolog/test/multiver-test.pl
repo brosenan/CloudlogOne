@@ -10,6 +10,6 @@ multiver:mutate(mult(N), test(X), Y) :-
 
 test(initial_value, []) :-
 	multiver:empty(M0),
-	multiver:init(M0, test(0), M1),
+	multiver:init(M0, test(0), M1).
 
 :- end_tests(multiver).

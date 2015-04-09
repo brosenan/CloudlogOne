@@ -22,6 +22,12 @@ test(add_and_retrieve_two_values, [true([R1, R2] == [2, 3])]) :-
 	treap:get(T2, foo, R1),
 	treap:get(T2, bar, R2).
 
+test(add_acts_as_add, [true(R == 5)]) :-
+	treap:empty(T0),
+	treap:add(T0, foo, 1, 3, -1, T1),
+	treap:add(T1, foo, 1, 2, -1, T2),
+	treap:get(T2, foo, R).
+
 test(left_rotation, [true(T2 = t(_, b, 2, 2, _, _))]) :-
 	treap:empty(T0),
 	treap:add(T0, a, 1, 3, -1, T1),
