@@ -187,22 +187,25 @@ treap:updatePlaceholder(t(L, K, W, V, H, R), K1, PH1, PH2, T) :-
 	
 max_depth(20).
 
-multiver:patch(add(K, V), T1, T2) :- 
+multiver:patch(add(K, V, NewV), T1, T2) :- 
 	random(W), 
 	max_depth(D), 
-	treap:add(T1, K, W, V, D, T2, _).
+	treap:add(T1, K, W, V, D, T2, NewV).
 
 multiver:query(get(K), T, V) :-
 	treap:get(T, K, V).
 
-multiver:patch(addHook(H, V), T1, T2) :-
-	treap:addHook(T1, H, V, T2, _).
+multiver:patch(addHook(H, V, NewV), T1, T2) :-
+	treap:addHook(T1, H, V, T2, NewV).
 
 multiver:query(getHook(K), T, (H,V)) :-
 	treap:getHook(T, K, H, V).
 
 multiver:patch(putPlaceholder(K, PH), T1, T2) :-
 	treap:putPlaceholder(T1, K, PH, T2).
+
+multiver:patch(updatePlaceholder(K, PH1, PH2), T1, T2) :-
+	treap:updatePlaceholder(T1, K, PH1, PH2, T2).
 
 multiver:query(findDominated(D), T, (K,V)) :-
 	treap:findDominated(T, D, K, V).
