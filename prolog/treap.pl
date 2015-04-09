@@ -1,4 +1,4 @@
-:- module(treap, [empty/1, get/3, add/4]).
+:- module(treap, []).
 :- use_module(util).
 :- use_module(termcompare).
 :- use_module(multiver).
