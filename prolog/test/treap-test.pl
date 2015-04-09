@@ -10,10 +10,10 @@ test(get_returns_zero, [true(R == 0)]) :-
 	treap:empty(T0),
 	treap:get(T0, foo, R).
 
-test(add_and_retrieve_value, [true(R == 3)]) :-
+test(add_and_retrieve_value, [true((R1,R2) == (3,3))]) :-
 	treap:empty(T0),
-	treap:add(T0, foo, 1, 3, -1, T1, _),
-	treap:get(T1, foo, R).
+	treap:add(T0, foo, 1, 3, -1, T1, R1),
+	treap:get(T1, foo, R2).
 
 test(add_and_retrieve_two_values, [true([R1, R2] == [2, 3])]) :-
 	treap:empty(T0),
