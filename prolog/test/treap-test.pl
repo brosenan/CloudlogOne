@@ -177,7 +177,7 @@ test(trivial_modify_hook_value, [R=[(testHook(foo(X), X), 3)]]) :-
 test(trivial_add_hook_returns_value, [(R1, R2) == (1, 3)]) :-
 	treap:empty(T0),
 	treap:addHook(T0, testHook(foo(X), X), 1, T1, R1),
-	treap:addHook(T1, testHook(foo(X), X), 2, T2, R2).
+	treap:addHook(T1, testHook(foo(X), X), 2, _, R2).
 
 test(modify_hook_value, [R=[(testHook(foo(X), X), 3)]]) :-
 	treap:empty(T0),

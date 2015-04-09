@@ -1,4 +1,4 @@
-:- module(util, [if/3]).
+:- module(util, [if/3, base64/2]).
 
 if(C, T, _) :- C, !, T.
 if(_, _, E) :- E.
@@ -25,3 +25,7 @@ pivotSplit([X | L1], L2, Pivot, L1Out, L2Out) :-
 	  L2Out = [X | L2Prime])),
 	pivotSplit(L1, L2, Pivot, L1Prime, L2Prime).
 
+
+codesToB64(Codes, B64) :-
+	atom_codes(Atom, Codes),
+	base64(Atom, B64).
