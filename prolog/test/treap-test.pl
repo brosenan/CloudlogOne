@@ -15,17 +15,17 @@ test(add_and_retrieve_value, [true((R1,R2) == (3,3))]) :-
 	treap:add(T0, foo, 1, 3, -1, T1, R1),
 	treap:get(T1, foo, R2).
 
-test(add_and_retrieve_two_values, [true([R1, R2] == [2, 3])]) :-
+test(add_and_retrieve_two_values, [true([R1, R1Prime, R2, R2Prime] == [2, 2, 3, 3])]) :-
 	treap:empty(T0),
-	treap:add(T0, foo, 1, 2, -1, T1, _),
-	treap:add(T1, bar, 2, 3, -1, T2, _),
+	treap:add(T0, foo, 1, 2, -1, T1, R1Prime),
+	treap:add(T1, bar, 2, 3, -1, T2, R2Prime),
 	treap:get(T2, foo, R1),
 	treap:get(T2, bar, R2).
 
-test(add_acts_as_add, [true(R == 5)]) :-
+test(add_acts_as_add, [true((R, R1, R2) == (5, 3, 5))]) :-
 	treap:empty(T0),
-	treap:add(T0, foo, 1, 3, -1, T1, _),
-	treap:add(T1, foo, 1, 2, -1, T2, _),
+	treap:add(T0, foo, 1, 3, -1, T1, R1),
+	treap:add(T1, foo, 1, 2, -1, T2, R2),
 	treap:get(T2, foo, R).
 
 test(left_rotation, [true(T2 = t(_, b, 2, 2, _, _))]) :-

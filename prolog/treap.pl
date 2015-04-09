@@ -22,14 +22,14 @@ treap:add(T1, K, V, T2) :-
 	random(W),
 	treap:add(T1, K, W, V, -1, T2, _).
 
-treap:add(nil(H), K, W, V, D, t(nil(HL), K, W, V, HM, nil(HR)), _) :-
+treap:add(nil(H), K, W, V, D, t(nil(HL), K, W, V, HM, nil(HR)), V) :-
 	if(D = 0,
 	  throw(treap_error(depth_limit_exceeded(H))),
 	% else
 	  true),
 	treap:splitThreeWays(H, K, HL, HM, HR).
 
-treap:add(t(L, K, W, V, H, R), K1, W1, V1, D, TOut, _) :-
+treap:add(t(L, K, W, V, H, R), K1, W1, V1, D, TOut, V2) :-
 	D1 is D - 1,
 	if(K == K1,
 	  (V2 is V + V1,
@@ -39,15 +39,12 @@ treap:add(t(L, K, W, V, H, R), K1, W1, V1, D, TOut, _) :-
 	    TOut = t(L, K, W, V2, H, R))),
 	%else
 	  if(K1 @< K, (
-	    treap:add(L, K1, W1, V1, D1, L2, _),
-	    R2 = R,
-	    V2 = V,
-	    treap:rotateRight(t(L2, K, W, V2, H, R2), TOut)),
+	    treap:add(L, K1, W1, V1, D1, L2, V2),
+	    treap:rotateRight(t(L2, K, W, V, H, R), TOut)),
 	  %else
 	    (L2 = L,
-	    treap:add(R, K1, W1, V1, D1, R2, _),
-	    V2 = V,
-	    treap:rotateLeft(t(L2, K, W, V2, H, R2), TOut)))).
+	    treap:add(R, K1, W1, V1, D1, R2, V2),
+	    treap:rotateLeft(t(L2, K, W, V, H, R2), TOut)))).
 
 treap:rotateLeft(t(X, K1, W1, V1, H1, t(Y, K2, W2, V2, H2, Z)), T) :-
 	if(W2 @< W1,
