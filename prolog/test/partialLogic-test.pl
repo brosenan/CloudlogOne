@@ -17,6 +17,13 @@ test(add_v, [R == (foo(bar),1)]) :-
 	multiver:patch(add_v(foo(bar), 1), T0, T1),
 	once(multiver:query(rawAxiom(foo(_)), T1, R)).
 
+test(rawAxiom_must_match, [fail]) :-
+	hashedTree:empty(T0),
+	multiver:patch(add_v(a(1, 1), 1), T0, T1),
+	multiver:patch(add_v(a(1, 2), 1), T1, T2),
+	multiver:patch(add_v(a(1, 3), 1), T2, T3),
+	once(multiver:query(rawAxiom(a(_, 4)), T3, R)).	
+
 % [patch] add_m(+Axiom, +Value): Adds Value to a multiplier matching Axiom.  
 %                                If Axiom is a rule, Value will be added to its multiplier over all matching facts, and vice versa.
 % [query] add_v(+Axiom, +Value): Performs bottom-up evaluation of rules as a result of the add_v patch with the same Axiom and Value.  

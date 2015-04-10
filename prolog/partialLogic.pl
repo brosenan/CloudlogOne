@@ -10,8 +10,8 @@ treap:hookDomain(A, rule(A, _, _)) :- !.
 multiver:patch(add_v(Axiom, Value), T1, T2) :-
 	multiver:patch(h_add(Axiom, Value, _), T1, T2).
 
-multiver:query(rawAxiom(Axiom), T, R) :-
-	multiver:query(h(findDominated(Axiom)), T, R).
+multiver:query(rawAxiom(Axiom), T, (Axiom, V)) :-
+	multiver:query(h(findDominated(Axiom)), T, (Axiom, V)).
 
 multiver:patch(add_m(Axiom, Value), T1, T2) :-
 	multiver:patch(h_addHook(Axiom, Value, _), T1, T2).
