@@ -36,3 +36,13 @@ partialLogic:match(rule(Fact, Guard, Res), Fact, Res1) :- !, %%%
 
 partialLogic:match(Fact, rule(Fact, Guard, Res), Res1) :-
 	partialLogic:match(rule(Fact, Guard, Res), Fact, Res1).
+
+
+multiver:query(logicQuery(Res, Goal), T, Ret) :-
+	partialLogic:query(Goal, Res, T, Ret).
+
+partialLogic:query(true, Res, T, res(Res)) :- !. %%%
+partialLogic:query(Goal, Res, T, Ret) :-
+	multiver:query(rawAxiom((Goal :- Body)), T, ((Goal :- Body), _)),
+	partialLogic:query(Body, Res, T, Ret).
+

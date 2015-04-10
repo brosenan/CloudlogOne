@@ -51,6 +51,22 @@ test(add_v_rule, [R == (bar, 6)]) :-
 	multiver:patch(add_v(rule(foo(abc), true, bar), 2), T0, T1),
 	once(multiver:query(add_m(foo(_), 3), T1, R)).
 
+% [query] logicQuery(?Result, +Goal): Evaluates Goal using clauses (axioms of the form H :- B) in the database. 
+%                                     If Goal is "true", the query succeeds without further conditions.  If Goal is local(G), goal G is evaluated locally (as a Prolog goal).
+%                                     If Goal is of the form (G1,G2), goal G1 is evaluated and for each result, G2 is evaluated.
+%                                     If Goal is none of the above, it is evaluated by searching for clauses that match Goal :- Body, and evaluating Body.
+%                                     Results can be either of the form res(Result), unifying Result with a result, or logicQuery(Result, OtherGoal), indicating a different goal to be evaulated.
+%                                     In case of a placeholder PH (more results located elsewhere), logicQuery(Result, Goal, PH) will be returned.
+%                                     
+test(logicQuery_true, [R == res(44)]) :-
+	hashedTree:empty(T0),
+	multiver:query(logicQuery(44, true), T0, R).
+
+test(logicQuery_clause, [R == res(bar)]) :-
+	hashedTree:empty(T0),
+	multiver:patch(add_v((foo(bar) :- true), 1), T0, T1),
+	once(multiver:query(logicQuery(X, foo(X)), T1, R)).
+
 % [nondet] match(+Axiom1, +Axiom2, -Axiom3): If one of Axiom1 and Axiom2 is a fact and the other is a matching rule,
 %                                            Axiom3 is unified with all results that satisfy the rule's guard.
 test(match_fact_rule, [R == b(t)]) :-
