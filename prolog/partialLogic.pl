@@ -28,9 +28,9 @@ multiver:query(add_m(Axiom1, Value1), T, (Axiom3, ValueMult)) :-
 	ValueMult is Value1 * Value2.
 
 partialLogic:match(rule(Fact, Guard, Res), Fact, Res1) :- !, %%%
-	util:time_out(Guard, 100, Status),
+	util:time_out(findall(Res, Guard, Rs), 100, Status),
 	if(Status = success,
-	  Res1 = Res,
+	  member(Res1, Rs),
 	% else
 	  Res1 = timed_out(rule(Fact, Guard, Res))).
 

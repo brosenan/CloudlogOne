@@ -41,15 +41,15 @@ test(add_m_fact, [R == (bar, 15)]) :-
 	multiver:query(add_v(rule(foo(abc), true, bar), 3), T1, R).
 
 % [query] add_m(+Axiom, +Value): Perform bottom-up evaluation as a result of adding a hook for matching axioms.  It scans the tree for matches that already exist.
-test(add_v_rule, [R == (bar, 6)]) :-
-	hashedTree:empty(T0),
-	multiver:patch(add_v(rule(foo(abc), true, bar), 2), T0, T1),
-	once(multiver:query(add_m(foo(_), 3), T1, R)).
-
 test(add_v_fact, [R == (bar(abc), 6)]) :-
 	hashedTree:empty(T0),
 	multiver:patch(add_v(foo(abc), 2), T0, T1),
 	once(multiver:query(add_m(rule(foo(X), true, bar(X)), 3), T1, R)).
+
+test(add_v_rule, [R == (bar, 6)]) :-
+	hashedTree:empty(T0),
+	multiver:patch(add_v(rule(foo(abc), true, bar), 2), T0, T1),
+	once(multiver:query(add_m(foo(_), 3), T1, R)).
 
 % [nondet] match(+Axiom1, +Axiom2, -Axiom3): If one of Axiom1 and Axiom2 is a fact and the other is a matching rule,
 %                                            Axiom3 is unified with all results that satisfy the rule's guard.
@@ -71,5 +71,19 @@ infinite_loop(X) :- infinite_loop(X).
 % in case of a timeout, a special timed_out axiom is created instead of any of the results, containing the rule that failed, matched with the fact.
 test(match_protected_agains_non_terminating_guard, [R == timed_out(rule(a(s), plunit_partialLogic:infinite_loop(s), b(s)))]) :-
 	partialLogic:match(rule(a(X), plunit_partialLogic:infinite_loop(X), b(X)), a(s), R).
+
+infinite_results(0).
+infinite_results(X) :- 
+	infinite_results(X1),
+	X is X1 + 1.
+
+test(match_protected_agains_guard_with_infinite_results, [R1 =@= [timed_out(rule(a(s), plunit_partialLogic:infinite_results(Y), b(s, Y)))]]) :-
+	findall(R, partialLogic:match(rule(a(X), plunit_partialLogic:infinite_results(Y), b(X, Y)), a(s), R), R1).
+
+test(match_fails_on_two_rules, [fail]) :-
+	partialLogic:match(rule(foo(_), true, _), rule(bar(_), true, _), _).
+
+test(match_fails_on_two_facts, [fail]) :-
+	partialLogic:match(foo(_), bar(_), _).
 
 :- end_tests(partialLogic).
