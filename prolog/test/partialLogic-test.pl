@@ -4,6 +4,12 @@
 :- use_module('../hashedTree.pl').
 
 
+% This module provides logic operations on a partial database.
+% The "add" operation that adds or subtracts value from a certain axiom (and thus adds or removes it from the database) is split into two operations: add_v and add_m.
+% add_v is the operation of adding the axiom itself to the database, and is keyed by the axiom itself.
+% add_m is the operation of adding a hook to match future axioms that interact with this axiom.  
+% If the axiom is a rule, a hook for future facts is added, and if a fact, a hook for future rules is added.  The hook always matches axioms that are as or more specific than the axiom itself.
+
 % [patch] add_v(+Axiom, +Value): Adds Value to Axiom.  Typically, Value=1 means adding Axiom to the database, and Value=-1 means removing it.
 % [query] rawAxiom(?Axiom): Finds all matches to Axiom in the DB, along with their (non-zero) value.  Returns (Axiom, Value) pairs.
 test(add_v, [R == (foo(bar),1)]) :-
