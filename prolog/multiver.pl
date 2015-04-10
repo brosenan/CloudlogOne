@@ -14,4 +14,10 @@ multiver:query(Q, M, H, V) :-
 	rb_lookup(H, T, M),
 	multiver:query(Q, T, V).
 
+multiver:patch(P, M1, H1, H2, M2) :-
+	rb_lookup(H1, T1, M1),
+	multiver:patch(P, T1, T2),
+	multiver:query(getHash, T2, H2),
+	rb_insert(M1, H2, T2, M2).
+
 	

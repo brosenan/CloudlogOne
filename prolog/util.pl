@@ -58,3 +58,23 @@ saturateList([], N, N).
 saturateList([Term | List], N1, N2) :-
 	saturate(Term, N1, N3),
 	saturateList(List, N3, N2).
+
+
+
+% Copied from SICStus compatibility library for SWI-Prolog
+time_out(Goal, Time_ms, Result) :-
+	Time_s is (Time_ms//1)/1000,
+        catch( ( Result0 = success,
+                 setup_call_cleanup(
+                        alarm(Time_s, throw(time_out), Id),
+                        Goal,
+                        ( Removed = true, remove_alarm(Id) )),
+                 (   var(Removed)
+                 ->  uninstall_alarm(Id),
+                     ( true ; install_alarm(Id,Time_s), fail )
+                 ;   true
+                 )
+	       ),
+	       time_out,
+	       Result0 = time_out ),
+        Result = Result0.
