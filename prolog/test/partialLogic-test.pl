@@ -15,10 +15,17 @@ test(add_v, [R == (foo(bar),1)]) :-
 %                                If Axiom is a rule, Value will be added to its multiplier over all matching facts, and vice versa.
 % [query] add_v(+Axiom, +Value): Performs bottom-up evaluation of rules as a result of the add_v patch with the same Axiom and Value.  
 %                                If Axiom is a rule, it finds matching facts, and vice versa.  It returns all resulting axioms.
+%                                The associated value is the multiplication of the values of the fact and the rule
 test(add_m_rule, [R == (bar(abc), 6)]) :-
 	hashedTree:empty(T0),
 	multiver:patch(add_m(rule(foo(X), true, bar(X)), 2), T0, T1),
 	multiver:query(add_v(foo(abc), 3), T1, R).
+
+% In this case the fact needs to be more general than the rule.
+test(add_m_fact, [R == (bar, 15)]) :-
+	hashedTree:empty(T0),
+	multiver:patch(add_m(foo(X), 5), T0, T1),
+	multiver:query(add_v(rule(foo(abc), true, bar), 3), T1, R).
 
 % [nondet] match(+Axiom1, +Axiom2, -Axiom3): If one of Axiom1 and Axiom2 is a fact and the other is a matching rule,
 %                                            Axiom3 is unified with all results that satisfy the rule's guard.

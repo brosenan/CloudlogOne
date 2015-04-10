@@ -107,7 +107,7 @@ test(find_dominated, [true(R == [[a(2, 4), 1], [a(2, 5), 1], [a(2, 6), 1]])]) :-
 	abTree(T),
 	findall([K, V], treap:findDominated(T, a(2, _), K, V), R).
 
-treap:hookDomain(testHook(A, _), A).
+treap:hookDomain(testHook(A, _), A) :- !.
 
 test(trivial_add_hook, [true(R =@= [[testHook(a(3, X), X), 1]])]) :-
 	treap:empty(T1),
