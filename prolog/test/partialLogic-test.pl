@@ -22,7 +22,7 @@ test(rawAxiom_must_match, [fail]) :-
 	multiver:patch(add_v(a(1, 1), 1), T0, T1),
 	multiver:patch(add_v(a(1, 2), 1), T1, T2),
 	multiver:patch(add_v(a(1, 3), 1), T2, T3),
-	once(multiver:query(rawAxiom(a(_, 4)), T3, R)).	
+	once(multiver:query(rawAxiom(a(_, 4)), T3, _)).	
 
 % [patch] add_m(+Axiom, +Value): Adds Value to a multiplier matching Axiom.  
 %                                If Axiom is a rule, Value will be added to its multiplier over all matching facts, and vice versa.
@@ -37,8 +37,19 @@ test(add_m_rule, [R == (bar(abc), 6)]) :-
 % In this case the fact needs to be more general than the rule.
 test(add_m_fact, [R == (bar, 15)]) :-
 	hashedTree:empty(T0),
-	multiver:patch(add_m(foo(X), 5), T0, T1),
+	multiver:patch(add_m(foo(_), 5), T0, T1),
 	multiver:query(add_v(rule(foo(abc), true, bar), 3), T1, R).
+
+% [query] add_m(+Axiom, +Value): Perform bottom-up evaluation as a result of adding a hook for matching axioms.  It scans the tree for matches that already exist.
+test(add_v_rule, [R == (bar, 6)]) :-
+	hashedTree:empty(T0),
+	multiver:patch(add_v(rule(foo(abc), true, bar), 2), T0, T1),
+	once(multiver:query(add_m(foo(_), 3), T1, R)).
+
+test(add_v_fact, [R == (bar(abc), 6)]) :-
+	hashedTree:empty(T0),
+	multiver:patch(add_v(foo(abc), 2), T0, T1),
+	once(multiver:query(add_m(rule(foo(X), true, bar(X)), 3), T1, R)).
 
 % [nondet] match(+Axiom1, +Axiom2, -Axiom3): If one of Axiom1 and Axiom2 is a fact and the other is a matching rule,
 %                                            Axiom3 is unified with all results that satisfy the rule's guard.
