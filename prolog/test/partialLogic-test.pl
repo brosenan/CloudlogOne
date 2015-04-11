@@ -32,7 +32,7 @@ test(add_v_throws_on_placeholder, [throws(forwardToPlaceholder(myPlaceholder))])
 	multiver:patch(add_v(b, 1), T1, _).
 
 % If rawAxiom encounters a placeholder, it returns (Axiom, ph(PH)), where Axiom is not further evaluated, and PH the placeholder term.
-test(add_v_throws_on_placeholder, [R =@= (b(_), ph(myPlaceholder))]) :-
+test(rawAxiom_returns_placeholder, [R =@= (b(_), ph(myPlaceholder))]) :-
 	hashedTree:empty(T0),
 	multiver:patch(h_putPlaceholder(a, myPlaceholder), T0, T1),
 	multiver:query(rawAxiom(b(_)), T1, R).
@@ -48,11 +48,17 @@ test(add_m_rule, [R == (bar(abc), 6)]) :-
 	multiver:patch(add_m(rule(foo(X), true, bar(X)), 2), T0, T1),
 	multiver:query(add_v(foo(abc), 3), T1, R).
 
-% In this case the fact needs to be more general than the rule.
+% In the following case the fact needs to be more general than the rule.
 test(add_m_fact, [R == (bar, 15)]) :-
 	hashedTree:empty(T0),
 	multiver:patch(add_m(foo(_), 5), T0, T1),
 	multiver:query(add_v(rule(foo(abc), true, bar), 3), T1, R).
+
+% Patch add_m must throw on a placeholder
+test(add_m_throws_on_placeholder, [throws(forwardToPlaceholder(myOtherPlaceholder))]) :-
+	hashedTree:empty(T0),
+	multiver:patch(h_putPlaceholder(a, myOtherPlaceholder), T0, T1),
+	multiver:patch(add_m(rule(b, true, c), 1), T1, _).
 
 % [query] add_m(+Axiom, +Value): Perform bottom-up evaluation as a result of adding a hook for matching axioms.  It scans the tree for matches that already exist.
 test(add_v_fact, [R == (bar(abc), 6)]) :-
@@ -64,6 +70,12 @@ test(add_v_rule, [R == (bar, 6)]) :-
 	hashedTree:empty(T0),
 	multiver:patch(add_v(rule(foo(abc), true, bar), 2), T0, T1),
 	once(multiver:query(add_m(foo(_), 3), T1, R)).
+
+% The add_m query returns placeholder results
+test(add_m_returns_placeholder, [R =@= (_, ph(myPlaceholder))]) :-
+	hashedTree:empty(T0),
+	multiver:patch(h_putPlaceholder(a, myPlaceholder), T0, T1),
+	multiver:query(add_m(rule(a, true, b), 1), T1, R).
 
 % [query] logicQuery(?Result, +Goal, +Mul): Evaluates Goal using clauses (axioms of the form H :- B) in the database. Result should be a term sharing some variables with Goal, and Mul should be a number.
 %                                           Returns zero or more of:

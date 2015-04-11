@@ -116,7 +116,9 @@ treap:addHook(t(L, K, W, V, Hs, R), H, Hv, D, T, NewV) :-
 	  % else
 	    (treap:addHook(R, H, Hv, D, R1, NewV),
 	    T = t(L, K, W, V, Hs, R1)))).
-	    
+
+treap:addHook(ph(PH), _, _, _, _, _) :-
+	throw(forwardToPlaceholder(PH)).
 
 treap:getHook(nil(Hs), K, H, V) :-
 	member(kv(H,V), Hs),

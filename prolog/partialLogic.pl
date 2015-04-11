@@ -25,8 +25,12 @@ multiver:query(add_v(Axiom1, Value1), T, (Axiom3, ValueMult)) :-
 multiver:query(add_m(Axiom1, Value1), T, (Axiom3, ValueMult)) :-
 	treap:hookDomain(Axiom1, D),
 	multiver:query(h(findDominated(D)), T, (Axiom2, Value2)),
-	partialLogic:match(Axiom1, Axiom2, Axiom3),
-	ValueMult is Value1 * Value2.
+	if(Value2 = ph(_),
+	  ValueMult = Value2,
+	% else
+	  (partialLogic:match(Axiom1, Axiom2, Axiom3),
+	  ValueMult is Value1 * Value2)).
+	  
 
 partialLogic:match(rule(Fact, Guard, Res), Fact, Res1) :- !, %%%
 	catch((sandbox:eval(Res, Guard), Res1 = Res),
