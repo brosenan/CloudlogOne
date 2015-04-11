@@ -44,7 +44,7 @@ multiver:query(logicQuery(Res, Goal, Mul), T, Ret) :-
 
 partialLogic:evaluateGoal(true, Res, Val, res(Res, Val)) :- !.  %%%
 partialLogic:evaluateGoal(local(Goal), Res, Val, res(Res, Val)) :- !,  %%%
-	Goal.
+	sandbox:eval(Res, Goal).
 partialLogic:evaluateGoal((Goal1, Goal2), Res, Val, Ret) :- !,  %%%
 	if(partialLogic:canEval(Goal1),
 	  (partialLogic:evaluateGoal(Goal1, Res, Val, res(_, _)),

@@ -70,6 +70,13 @@ test(logicQuery_local, [R == res(bar, 15)]) :-
 	multiver:patch(add_v((foo(X) :- local(X = bar)), 5), T0, T1),
 	once(multiver:query(logicQuery(X, foo(X), 3), T1, R)).
 
+% Evaluation of local goals should be proteceted agains runaway goals.
+test(logicQuery_local_runaway, [throws(timed_out(_))]) :-
+	hashedTree:empty(T0),
+	multiver:patch(add_v((foo(X) :- local(plunit_partialLogic:infinite_results(X))), 5), T0, T1),
+	findall(R, multiver:query(logicQuery(X, foo(X), 3), T1, R), _).
+	
+
 % If Goal is of the form (G1,G2), goal G1 is evaluated and for each result, G2 is evaluated.
 test(logicQuery_conj, [R == res(baz, 15)]) :-
 	hashedTree:empty(T0),
