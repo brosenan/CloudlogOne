@@ -38,11 +38,24 @@ partialLogic:match(Fact, rule(Fact, Guard, Res), Res1) :-
 	partialLogic:match(rule(Fact, Guard, Res), Fact, Res1).
 
 
-multiver:query(logicQuery(Res, Goal), T, Ret) :-
-	partialLogic:query(Goal, Res, T, Ret).
+multiver:query(logicQuery(Res, Goal, Mul), T, Ret) :-
+	multiver:query(rawAxiom((Goal :- _)), T, ((Goal :- Body), Val1)),
+	Val2 is Val1 * Mul,
+	partialLogic:evaluateGoal(Body, Res, Val2, Ret).
 
-partialLogic:query(true, Res, T, res(Res)) :- !. %%%
-partialLogic:query(Goal, Res, T, Ret) :-
-	multiver:query(rawAxiom((Goal :- Body)), T, ((Goal :- Body), _)),
-	partialLogic:query(Body, Res, T, Ret).
+partialLogic:evaluateGoal(true, Res, Val, res(Res, Val)) :- !.  %%%
+partialLogic:evaluateGoal(local(Goal), Res, Val, res(Res, Val)) :- !,  %%%
+	Goal.
+partialLogic:evaluateGoal((Goal1, Goal2), Res, Val, Ret) :- !,  %%%
+	if(partialLogic:canEval(Goal1),
+	  (partialLogic:evaluateGoal(Goal1, Res, Val, res(_, _)),
+	  partialLogic:evaluateGoal(Goal2, Res, Val, Ret)),
+	% else
+	  Ret = logicQuery(Res, (Goal1, Goal2), Val)).
+partialLogic:evaluateGoal(Goal, Res, Val, logicQuery(Res, Goal, Val)).
 
+partialLogic:canEval(true).
+partialLogic:canEval(local(_)).
+partialLogic:canEval((G1,G2)) :-
+	partialLogic:canEval(G1),
+	partialLogic:canEval(G2).

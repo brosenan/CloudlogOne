@@ -51,21 +51,50 @@ test(add_v_rule, [R == (bar, 6)]) :-
 	multiver:patch(add_v(rule(foo(abc), true, bar), 2), T0, T1),
 	once(multiver:query(add_m(foo(_), 3), T1, R)).
 
-% [query] logicQuery(?Result, +Goal): Evaluates Goal using clauses (axioms of the form H :- B) in the database. 
-%                                     If Goal is "true", the query succeeds without further conditions.  If Goal is local(G), goal G is evaluated locally (as a Prolog goal).
-%                                     If Goal is of the form (G1,G2), goal G1 is evaluated and for each result, G2 is evaluated.
-%                                     If Goal is none of the above, it is evaluated by searching for clauses that match Goal :- Body, and evaluating Body.
-%                                     Results can be either of the form res(Result), unifying Result with a result, or logicQuery(Result, OtherGoal), indicating a different goal to be evaulated.
-%                                     In case of a placeholder PH (more results located elsewhere), logicQuery(Result, Goal, PH) will be returned.
-%                                     
-test(logicQuery_true, [R == res(44)]) :-
-	hashedTree:empty(T0),
-	multiver:query(logicQuery(44, true), T0, R).
+% [query] logicQuery(?Result, +Goal, +Mul): Evaluates Goal using clauses (axioms of the form H :- B) in the database. Result should be a term sharing some variables with Goal, and Mul should be a number.
+%                                           Returns zero or more of:
+%                                            - res(Result, Value), where Result is unified by the goal, and Value is the value of the clause axiom contributing this result, times Mul.
+%                                            - ph(PH), where PH is a placeholder, in case the placeholder needs to be consulted for more results.
+%                                            - logicQuery(Result, Goal1, Mul1), where Goal1 is a (different) goal, and Mul1 is a (different) number, indicates that Goal1 needs to be consulted
+%                                              for more results.
 
-test(logicQuery_clause, [R == res(bar)]) :-
+% If Goal is "true", the query succeeds without further conditions.
+test(logicQuery_simple, [R == res(bar, 6)]) :-
 	hashedTree:empty(T0),
-	multiver:patch(add_v((foo(bar) :- true), 1), T0, T1),
-	once(multiver:query(logicQuery(X, foo(X)), T1, R)).
+	multiver:patch(add_v((foo(bar) :- true), 3), T0, T1),
+	once(multiver:query(logicQuery(X, foo(X), 2), T1, R)).
+
+% If Goal is local(G), goal G is evaluated locally (as a Prolog goal).
+test(logicQuery_local, [R == res(bar, 15)]) :-
+	hashedTree:empty(T0),
+	multiver:patch(add_v((foo(X) :- local(X = bar)), 5), T0, T1),
+	once(multiver:query(logicQuery(X, foo(X), 3), T1, R)).
+
+% If Goal is of the form (G1,G2), goal G1 is evaluated and for each result, G2 is evaluated.
+test(logicQuery_conj, [R == res(baz, 15)]) :-
+	hashedTree:empty(T0),
+	multiver:patch(add_v((foo(X) :- local(member(X, [bar, baz, bat])), local(X = baz)), 5), T0, T1),
+	once(multiver:query(logicQuery(X, foo(X), 3), T1, R)).
+
+% If Goal is none of the above, the goal must be re-evaluated using a different set of clauses. Therefore, a subsequent query is returned.
+test(logicQuery_other, [R =@= logicQuery(X, bar(X), 15)]) :-
+	hashedTree:empty(T0),
+	multiver:patch(add_v((foo(X) :- bar(X)), 5), T0, T1),
+	once(multiver:query(logicQuery(X, foo(X), 3), T1, R)).
+
+% It is possible to combine different kinds of goals through conjunction
+test(logicQuery_local_other, [R =@= logicQuery(7, bar(7), 15)]) :-
+	hashedTree:empty(T0),
+	multiver:patch(add_v((foo(X) :- local(X = 7), bar(X)), 5), T0, T1),
+	once(multiver:query(logicQuery(X, foo(X), 3), T1, R)).
+
+test(logicQuery_other_local, [R =@= logicQuery(X, (bar(X), local(X = 7)), 15)]) :-
+	hashedTree:empty(T0),
+	multiver:patch(add_v((foo(X) :- bar(X), local(X = 7)), 5), T0, T1),
+	once(multiver:query(logicQuery(X, foo(X), 3), T1, R)).
+
+% Results can be either of the form res(Result), unifying Result with a result, or logicQuery(Result, OtherGoal), indicating a different goal to be evaulated.
+% In case of a placeholder PH (more results located elsewhere), logicQuery(Result, Goal, PH) will be returned.
 
 % [nondet] match(+Axiom1, +Axiom2, -Axiom3): If one of Axiom1 and Axiom2 is a fact and the other is a matching rule,
 %                                            Axiom3 is unified with all results that satisfy the rule's guard.
