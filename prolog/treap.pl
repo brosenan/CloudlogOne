@@ -46,6 +46,9 @@ treap:add(t(L, K, W, V, H, R), K1, W1, V1, D, TOut, V2) :-
 	    treap:add(R, K1, W1, V1, D1, R2, V2),
 	    treap:rotateLeft(t(L2, K, W, V, H, R2), TOut)))).
 
+treap:add(ph(PH), _, _, _, _, _, _) :-
+	throw(forwardToPlaceholder(PH)).
+
 treap:rotateLeft(t(X, K1, W1, V1, H1, t(Y, K2, W2, V2, H2, Z)), T) :-
 	if(W2 @< W1,
 	  T = t(X, K1, W1, V1, H1, t(Y, K2, W2, V2, H2, Z)),

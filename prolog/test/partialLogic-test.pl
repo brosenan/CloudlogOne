@@ -17,12 +17,26 @@ test(add_v, [R == (foo(bar),1)]) :-
 	multiver:patch(add_v(foo(bar), 1), T0, T1),
 	once(multiver:query(rawAxiom(foo(_)), T1, R)).
 
+% Unlike findDominated, which returns all dominated results, rawAxiom only returns axioms that match Axiom.
 test(rawAxiom_must_match, [fail]) :-
 	hashedTree:empty(T0),
 	multiver:patch(add_v(a(1, 1), 1), T0, T1),
 	multiver:patch(add_v(a(1, 2), 1), T1, T2),
 	multiver:patch(add_v(a(1, 3), 1), T2, T3),
-	once(multiver:query(rawAxiom(a(_, 4)), T3, _)).	
+	multiver:query(rawAxiom(a(_, 4)), T3, _).	
+
+% Patch add_v throws an exception if the modification needs to be performed in a placeholder.
+test(add_v_throws_on_placeholder, [throws(forwardToPlaceholder(myPlaceholder))]) :-
+	hashedTree:empty(T0),
+	multiver:patch(h_putPlaceholder(a, myPlaceholder), T0, T1),
+	multiver:patch(add_v(b, 1), T1, _).
+
+% If rawAxiom encounters a placeholder, it returns (Axiom, ph(PH)), where Axiom is not further evaluated, and PH the placeholder term.
+test(add_v_throws_on_placeholder, [R =@= (b(_), ph(myPlaceholder))]) :-
+	hashedTree:empty(T0),
+	multiver:patch(h_putPlaceholder(a, myPlaceholder), T0, T1),
+	multiver:query(rawAxiom(b(_)), T1, R).
+
 
 % [patch] add_m(+Axiom, +Value): Adds Value to a multiplier matching Axiom.  
 %                                If Axiom is a rule, Value will be added to its multiplier over all matching facts, and vice versa.
@@ -75,7 +89,6 @@ test(logicQuery_local_runaway, [throws(timed_out(_))]) :-
 	hashedTree:empty(T0),
 	multiver:patch(add_v((foo(X) :- local(plunit_partialLogic:infinite_results(X))), 5), T0, T1),
 	findall(R, multiver:query(logicQuery(X, foo(X), 3), T1, R), _).
-	
 
 % If Goal is of the form (G1,G2), goal G1 is evaluated and for each result, G2 is evaluated.
 test(logicQuery_conj, [R == res(baz, 15)]) :-
