@@ -2,6 +2,7 @@
 
 :- use_module(multiver).
 :- use_module(util).
+:- use_module(sandbox).
 
 treap:hookDomain(rule(A, _, _), A) :- !.
 treap:hookDomain(A, rule(A, _, _)) :- !.
@@ -28,10 +29,8 @@ multiver:query(add_m(Axiom1, Value1), T, (Axiom3, ValueMult)) :-
 	ValueMult is Value1 * Value2.
 
 partialLogic:match(rule(Fact, Guard, Res), Fact, Res1) :- !, %%%
-	util:time_out(findall(Res, Guard, Rs), 100, Status),
-	if(Status = success,
-	  member(Res1, Rs),
-	% else
+	catch((sandbox:eval(Res, Guard), Res1 = Res),
+	  timed_out(_), 
 	  Res1 = timed_out(rule(Fact, Guard, Res))).
 
 partialLogic:match(Fact, rule(Fact, Guard, Res), Res1) :-
