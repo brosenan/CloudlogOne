@@ -125,6 +125,11 @@ test(logicQuery_other_local, [R =@= logicQuery(X, (bar(X), local(X = 7)), 15)]) 
 	multiver:patch(add_v((foo(X) :- bar(X), local(X = 7)), 5), T0, T1),
 	once(multiver:query(logicQuery(X, foo(X), 3), T1, R)).
 
+test(logicQuery_placeholder, [R == ph(myPlaceholder)]) :-
+	hashedTree:empty(T0),
+	multiver:patch(h_putPlaceholder(a, myPlaceholder), T0, T1),
+	multiver:query(logicQuery(X, foo(X), 1), T1, R).
+
 % Results can be either of the form res(Result), unifying Result with a result, or logicQuery(Result, OtherGoal), indicating a different goal to be evaulated.
 % In case of a placeholder PH (more results located elsewhere), logicQuery(Result, Goal, PH) will be returned.
 

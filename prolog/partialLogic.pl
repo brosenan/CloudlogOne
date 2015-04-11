@@ -43,8 +43,11 @@ partialLogic:match(Fact, rule(Fact, Guard, Res), Res1) :-
 
 multiver:query(logicQuery(Res, Goal, Mul), T, Ret) :-
 	multiver:query(rawAxiom((Goal :- _)), T, ((Goal :- Body), Val1)),
-	Val2 is Val1 * Mul,
-	partialLogic:evaluateGoal(Body, Res, Val2, Ret).
+	if(Val1 = ph(PH),
+	  Ret = ph(PH),
+	% else
+	  (Val2 is Val1 * Mul,
+	  partialLogic:evaluateGoal(Body, Res, Val2, Ret))).
 
 partialLogic:evaluateGoal(true, Res, Val, res(Res, Val)) :- !.  %%%
 partialLogic:evaluateGoal(local(Goal), Res, Val, res(Res, Val)) :- !,  %%%
