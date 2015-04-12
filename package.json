@@ -1,5 +1,5 @@
 {
-  "name": "cloudlog",
+  "name": "CloudlogOne",
   "version": "0.0.0",
   "description": "A NoDatalog deductive database",
   "main": "index.js",
