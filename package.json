@@ -1,0 +1,28 @@
+{
+  "name": "cloudlog",
+  "version": "0.0.0",
+  "description": "A NoDatalog deductive database",
+  "main": "index.js",
+  "scripts": {
+    "test": "node_modules/mocha/bin/mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/brosenan/cloudlog.git"
+  },
+  "keywords": [
+    "nosql",
+    "database",
+    "prolog"
+  ],
+  "author": "Boaz Rosenan <brosenan@gmail.com>",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/brosenan/cloudlog/issues"
+  },
+  "homepage": "https://github.com/brosenan/cloudlog",
+  "dependencies": {},
+  "devDependencies": {
+    "mocha": "^2.2.4"
+  }
+}
