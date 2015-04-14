@@ -7,8 +7,10 @@ var $S = require('suspend'), $R = $S.resume, $T = function(gen) { return functio
 
 module.exports = function() {
     this.prolog = spawn('swipl', ['-f', __dirname + '/../prolog/main.pl', '-t', 'cloudlog1']);
+    
     //this.prolog.stderr.pipe(process.stderr);
     //this.prolog.stdout.pipe(process.stdout);
+    
     this.prolog.stdout.setEncoding('utf-8');
     this.lines = byline(this.prolog.stdout);
     var self = this;
