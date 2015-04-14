@@ -62,8 +62,19 @@ describe('PrologInterface', function(){
 	var em = prolog.request("create([add_v((foo(bar) :- true), 1)])");
 	var r = $R();
 	var id = (yield em.on('success', $S.resumeRaw()))[0];
-	var split = id.split(':');
+	var split = id.split(',');
 	assert.equal(split[0], split[1]);
     }));
-
+    function* createChunk(prolog, ops) {
+	var em = prolog.request("create([" + ops.join(",") + "])");
+	var r = $R();
+	return (yield em.on('success', $S.resumeRaw()))[0];
+    }
+    it('should support queries on chunks', $T(function*(){
+	var prolog = new PrologInterface();
+	var id = yield* createChunk(prolog, ["add_v((foo(bar) :- true), 1)"]);
+	var em = prolog.request("on((" + id + "), logicQuery(X, foo(X), 1))");
+	var res = (yield em.on('downstream', $S.resumeRaw()))[0];
+	assert.equal(res, "res(bar,1)");
+    }));
 });

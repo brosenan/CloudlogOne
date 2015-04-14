@@ -1,5 +1,7 @@
 :- module(multiver, []).
 
+:- use_module(util).
+
 :- multifile patch/3.
 :- multifile query/3.
 
@@ -20,4 +22,7 @@ multiver:patch(P, M1, H1, H2, M2) :-
 	multiver:query(getHash, T2, H2),
 	rb_insert(M1, H2, T2, M2).
 
-	
+multiver:patch([], T, T).
+multiver:patch([P | Ps], T1, T3) :-
+	multiver:patch(P, T1, T2),
+	multiver:patch(Ps, T2, T3).

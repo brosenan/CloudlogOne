@@ -6,14 +6,17 @@
 
 main:cloudlog1 :-
 	rb_empty(T),
-	main:cloudlog1(T).
+	if(main:cloudlog1(T),
+	  true,
+	% else
+	  (write('! stopped'), nl)).
 
 main:cloudlog1(T1) :-
 	read(Cmd),
 	if(main:handleCmd(Cmd, T1, T2, Continue),
 	  true,
 	%else
-	  (write('! '), write(unknownCommand(Cmd)), nl)),
+	  (write('! '), main:mywrite(unknownCommand(Cmd)), nl)),
 	if(Continue = yes,
 	  main:cloudlog1(T2),
 	% else
@@ -24,11 +27,26 @@ main:handleCmd(heartbeat, T, T, yes) :-
 
 main:handleCmd(end_of_file, T, T, no).
 
-main:handleCmd(create(List), T1, T1, yes) :-
-	hashedTree:empty(L0),
-	multiver:query(getHash, L0, H),
+main:handleCmd(create(Patch), C1, C2, yes) :-
+	multiver:empty(M0),
+	hashedTree:empty(T0),
+	multiver:query(getHash, T0, H0),
+	multiver:init(M0, T0, H0, M1),
+	util:enforce(multiver:patch(Patch, M1, H0, H1, M2)),
+	rb_insert(C1, H1, M2, C2),
+	writeHash(H1, H1).
+
+main:handleCmd(on((Hc,Hv), Op), C1, C1, yes) :-
+	util:enforce(rb_lookup(Hc, M1, C1)),
+	forall(
+	  multiver:query(Op, M1, Hv, R),
+	  (write(': '), main:mywrite(R), nl)),
+	writeHash(Hc, Hv).
+
+main:writeHash(H1, H2) :-
 	write('. '),
-	write(H),
-	write(':'),
-	write(H),
+	mywrite((H1,H2)),
 	nl.
+
+mywrite(Term) :-
+	write_term(Term, [quoted(true)]).

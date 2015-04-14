@@ -23,6 +23,8 @@ module.exports = function() {
 	} else if(data.substr(0, 2) === '. ') {
 	    self.emitter.emit('success', data.substr(2));
 	    self.done();
+	} else if(data.substr(0, 2) === ': ') {
+	    self.emitter.emit('downstream', data.substr(2));
 	}
     });
 };
