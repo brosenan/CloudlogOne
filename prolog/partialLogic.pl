@@ -49,6 +49,9 @@ multiver:query(logicQuery(Res, Goal, Mul), T, Ret) :-
 	  (Val2 is Val1 * Mul,
 	  partialLogic:evaluateGoal(Body, Res, Val2, Ret))).
 
+% logicQuery as a trivial patch
+multiver:patch(logicQuery(_, _, _), T, T).
+
 partialLogic:evaluateGoal(true, Res, Val, res(Res, Val)) :- !.  %%%
 partialLogic:evaluateGoal(local(Goal), Res, Val, res(Res, Val)) :- !,  %%%
 	sandbox:eval(Res, Goal).

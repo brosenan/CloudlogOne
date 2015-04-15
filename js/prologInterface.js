@@ -5,6 +5,8 @@ var EventEmitter = require('events').EventEmitter;
 
 var $S = require('suspend'), $R = $S.resume, $T = function(gen) { return function(done) { $S.run(gen, done); } };
 
+var upstreamRegex = /([^ ]+,[^ ]+) (.*)/;
+
 module.exports = function() {
     this.prolog = spawn('swipl', ['-f', __dirname + '/../prolog/main.pl', '-t', 'cloudlog1']);
     
@@ -25,6 +27,9 @@ module.exports = function() {
 	    self.done();
 	} else if(data.substr(0, 2) === ': ') {
 	    self.emitter.emit('downstream', data.substr(2));
+	} else if(data.substr(0, 2) === '? ') {
+	    let m = data.substr(2).match(upstreamRegex);
+	    self.emitter.emit('upstream', m[1], m[2]);
 	}
     });
 };

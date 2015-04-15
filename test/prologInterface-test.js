@@ -77,4 +77,27 @@ describe('PrologInterface', function(){
 	var res = (yield em.on('downstream', $S.resumeRaw()))[0];
 	assert.equal(res, "res(bar,1)");
     }));
+    it('should support patches', $T(function*(){
+	var prolog = new PrologInterface();
+	var id = yield* createChunk(prolog, []);
+	var em = prolog.request("on((" + id + "), add_v((foo(bar) :- true), 1))");
+	id = (yield em.on("success", $S.resumeRaw()))[0];
+	em = prolog.request("on((" + id + "), logicQuery(X, foo(X), 1))");
+	var res = (yield em.on('downstream', $S.resumeRaw()))[0];
+	yield em.on('done', $R());
+	assert.equal(res, "res(bar,1)");
+    }));
+    it('should forward requests to other chunks when encountering a placeholder', $T(function*(){
+	var prolog = new PrologInterface();
+	var id = yield* createChunk(prolog, ["h_putPlaceholder(x, (foo,bar))"]);
+	// Query
+	var em = prolog.request("on((" + id + "), logicQuery(X, foo(X), 1))");
+	em.on("downstream", function(data) {
+	    assert(false, 'This query should not have downstream results: ' + data);
+	});
+	var forward = yield em.on("upstream", $S.resumeRaw());
+	assert.equal(forward[0], "foo,bar");
+	assert(forward[1].match(/logicQuery\(_.*,foo\(_.*\),1\)/), "valid forward query: " + forward[1]);
+    }));
+
 });

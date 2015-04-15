@@ -36,12 +36,18 @@ main:handleCmd(create(Patch), C1, C2, yes) :-
 	rb_insert(C1, H1, M2, C2),
 	writeHash(H1, H1).
 
-main:handleCmd(on((Hc,Hv), Op), C1, C1, yes) :-
+main:handleCmd(on((Hc,Hv1), Op), C1, C2, yes) :-
 	util:enforce(rb_lookup(Hc, M1, C1)),
 	forall(
-	  multiver:query(Op, M1, Hv, R),
-	  (write(': '), main:mywrite(R), nl)),
-	writeHash(Hc, Hv).
+	  multiver:query(Op, M1, Hv1, R),
+	% do
+	  if(main:hasPlaceholder(R, PH),
+	    (write('? '), main:mywrite(PH), write(' '), main:mywrite(Op), nl),
+	  % else
+	    (write(': '), main:mywrite(R), nl))),
+	multiver:patch(Op, M1, Hv1, Hv2, M2),
+	rb_insert(C1, Hc, M2, C2),
+	writeHash(Hc, Hv2).
 
 main:writeHash(H1, H2) :-
 	write('. '),
@@ -50,3 +56,5 @@ main:writeHash(H1, H2) :-
 
 mywrite(Term) :-
 	write_term(Term, [quoted(true)]).
+
+main:hasPlaceholder(ph(PH), PH).
