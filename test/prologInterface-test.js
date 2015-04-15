@@ -129,6 +129,17 @@ describe('PrologInterface', function(){
 	    assert(count > 0, 'count > 0');
 	}));
 	
+	it('should convert pending hooks to creation patches', $T(function*(){
+	    var prolog = new PrologInterface();
+	    yield setMaxDepth(prolog, 0, $S.resumeRaw());
+	    var id = yield* createChunk(prolog, []);
+	    id = (yield prolog.request("on((" + id + "), add_m(rule(a(X), true, b(X)), 1))").on("success", $S.resumeRaw()))[0];
+	    id = (yield prolog.request("on((" + id + "), add_m(rule(b(X), true, c(X)), 1))").on("success", $S.resumeRaw()))[0];
+	    var fwd = (yield prolog.request("on((" + id + "), add_v(a(b), 1))").on("upstream", $S.resumeRaw()));
+	    assert(fwd[1].match(/add_m\(rule\(a\(_G[0-9]*\),true,b\(_G[0-9]*\)\),1\)/), 'should match add_m(rule(a(X), true, b(X)), 1)): ' + fwd[1]);
+	    assert(fwd[1].match(/add_m\(rule\(b\(_G[0-9]*\),true,c\(_G[0-9]*\)\),1\)/), 'should match add_m(rule(b(X), true, c(X)), 1)): ' + fwd[1]);
+	}));
+
     });
     function setMaxDepth(prolog, depth, cb) {
 	var em = prolog.request('set_max_depth(' + depth + ')');

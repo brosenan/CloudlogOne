@@ -53,8 +53,10 @@ main:handleCmd(on((Hc,Hv1), Op), C1, C2, yes) :-
 	  catch(
 	    multiver:patch(Op, M1, Hv1, Hv2, M2),
 	  % catch
-	    treap_error(depth_limit_exceeded([])),
-	    (writeUpstream(('_', '_'), []), (Hv2, M2) = (Hv1, M1))),
+	    treap_error(depth_limit_exceeded(Hooks)),
+	    (main:convertHooks(Hooks, HookPatches),
+	    writeUpstream(('_', '_'), HookPatches), 
+	    (Hv2, M2) = (Hv1, M1))),
 	% catch
 	  forwardToPlaceholder(PH),
 	  (main:writeUpstream(PH, Op),
@@ -86,3 +88,7 @@ main:writeUpstream(PH, Op) :-
 	write(' '), 
 	main:mywrite(Op), 
 	nl.
+
+main:convertHooks([], []).
+main:convertHooks([kv(K, V) | Hooks], [add_m(K, V) | Patches]) :-
+	main:convertHooks(Hooks, Patches).
