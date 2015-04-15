@@ -190,7 +190,7 @@ treap:updatePlaceholder(t(L, K, W, V, H, R), K1, PH1, PH2, T) :-
 	  (treap:updatePlaceholder(R, K1, PH1, PH2, R1),
 	  T = t(L, K, W, V, H, R1))).
 	
-max_depth(20).
+max_depth(12).
 
 multiver:patch(add(K, V, NewV), T1, T2) :- 
 	random(W), 

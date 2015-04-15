@@ -29,6 +29,9 @@ module.exports = function() {
 	    self.emitter.emit('downstream', data.substr(2));
 	} else if(data.substr(0, 2) === '? ') {
 	    let m = data.substr(2).match(upstreamRegex);
+	    if(m == null) {
+		throw Error('Bad upstream response: ' + data);
+	    }
 	    self.emitter.emit('upstream', m[1], m[2]);
 	}
     });

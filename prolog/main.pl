@@ -46,14 +46,18 @@ main:handleCmd(on((Hc,Hv1), Op), C1, C2, yes) :-
 	  multiver:query(Op, M1, Hv1, R),
 	% do
 	  if(main:hasPlaceholder(R, PH),
-	    (write('? '), main:mywrite(PH), write(' '), main:mywrite(Op), nl),
+	    main:writeUpstream(PH, Op),
 	  % else
 	    (write(': '), main:mywrite(R), nl))),
 	catch(
-	  multiver:patch(Op, M1, Hv1, Hv2, M2),
+	  catch(
+	    multiver:patch(Op, M1, Hv1, Hv2, M2),
+	  % catch
+	    treap_error(depth_limit_exceeded([])),
+	    (writeUpstream(('_', '_'), []), (Hv2, M2) = (Hv1, M1))),
 	% catch
 	  forwardToPlaceholder(PH),
-	  (write('? '), main:mywrite(PH), write(' '), main:mywrite(Op), nl,
+	  (main:writeUpstream(PH, Op),
 	  (Hv2, M2) = (Hv1, M1))),
 	rb_insert(C1, Hc, M2, C2),
 	writeHash(Hc, Hv2).
@@ -68,3 +72,10 @@ mywrite(Term) :-
 
 main:hasPlaceholder(ph(PH), PH).
 main:hasPlaceholder((_, ph(PH)), PH).
+
+main:writeUpstream(PH, Op) :-
+	write('? '), 
+	main:mywrite(PH), 
+	write(' '), 
+	main:mywrite(Op), 
+	nl.

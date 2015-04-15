@@ -103,8 +103,24 @@ describe('PrologInterface', function(){
 	em = prolog.request("on((" + id + "), add_v(a(c), 1))");
 	forward = yield em.on("upstream", $S.resumeRaw());
 	assert.deepEqual(forward, ['foo,bar', 'add_v(a(c),1)']);
+
 	// add_m
 	em = prolog.request("on((" + id + "), add_m(rule(a(X), true, b(X)), 1))");
 	forward = yield em.on("upstream", $S.resumeRaw());
+    }));
+
+    it('should request the creation of a new chunk if the size limit has been exceeded', $T(function*(){
+	var prolog = new PrologInterface();
+	var id = yield* createChunk(prolog, []);
+	var count = 0;
+	for(let i = 0; i < 2000; i++) {
+	    let em = prolog.request("on((" + id + "), add_v(a(" + i + "), 1))");
+	    em.on("upstream", function(fid, req) {
+		assert.equal(fid, "'_','_'");
+		count += 1;
+	    });
+	    id = (yield em.on("success", $S.resumeRaw()))[0];
+	}
+	assert(count > 0, 'count > 0');
     }));
 });
