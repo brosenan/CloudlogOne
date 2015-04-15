@@ -57,70 +57,94 @@ describe('PrologInterface', function(){
 	    assert.equal(count, 1);
 	}));
     });
-    it('should support creation of new chunks', $T(function*(){
-	var prolog = new PrologInterface();
-	var em = prolog.request("create([add_v((foo(bar) :- true), 1)])");
-	var r = $R();
-	var id = (yield em.on('success', $S.resumeRaw()))[0];
-	var split = id.split(',');
-	assert.equal(split[0], split[1]);
-    }));
+    describe('create/1', function(){
+	it('should support creation of new chunks', $T(function*(){
+	    var prolog = new PrologInterface();
+	    var em = prolog.request("create([add_v((foo(bar) :- true), 1)])");
+	    var r = $R();
+	    var id = (yield em.on('success', $S.resumeRaw()))[0];
+	    var split = id.split(',');
+	    assert.equal(split[0], split[1]);
+	}));
+	
+    });
     function* createChunk(prolog, ops) {
 	var em = prolog.request("create([" + ops.join(",") + "])");
 	var r = $R();
 	return (yield em.on('success', $S.resumeRaw()))[0];
     }
-    it('should support queries on chunks', $T(function*(){
-	var prolog = new PrologInterface();
-	var id = yield* createChunk(prolog, ["add_v((foo(bar) :- true), 1)"]);
-	var em = prolog.request("on((" + id + "), logicQuery(X, foo(X), 1))");
-	var res = (yield em.on('downstream', $S.resumeRaw()))[0];
-	assert.equal(res, "res(bar,1)");
-    }));
-    it('should support patches', $T(function*(){
-	var prolog = new PrologInterface();
-	var id = yield* createChunk(prolog, []);
-	var em = prolog.request("on((" + id + "), add_v((foo(bar) :- true), 1))");
-	id = (yield em.on("success", $S.resumeRaw()))[0];
-	em = prolog.request("on((" + id + "), logicQuery(X, foo(X), 1))");
-	var res = (yield em.on('downstream', $S.resumeRaw()))[0];
-	yield em.on('done', $R());
-	assert.equal(res, "res(bar,1)");
-    }));
-    it('should forward requests to other chunks when encountering a placeholder', $T(function*(){
-	var prolog = new PrologInterface();
-	var id = yield* createChunk(prolog, ["add_v(a(b), 1)", "h_putPlaceholder(x(y), (foo,bar))"]);
-	// Query
-	var em = prolog.request("on((" + id + "), logicQuery(X, foo(X), 1))");
-	em.on("downstream", function(data) {
-	    assert(false, 'This query should not have downstream results: ' + data);
-	});
-	var forward = yield em.on("upstream", $S.resumeRaw());
-	assert.equal(forward[0], "foo,bar");
-	assert(forward[1].match(/logicQuery\(_.*,foo\(_.*\),1\)/), "valid forward query: " + forward[1]);
-
-	// add_v
-	em = prolog.request("on((" + id + "), add_v(a(c), 1))");
-	forward = yield em.on("upstream", $S.resumeRaw());
-	assert.deepEqual(forward, ['foo,bar', 'add_v(a(c),1)']);
-
-	// add_m
-	em = prolog.request("on((" + id + "), add_m(rule(a(X), true, b(X)), 1))");
-	forward = yield em.on("upstream", $S.resumeRaw());
-    }));
-
-    it('should request the creation of a new chunk if the size limit has been exceeded', $T(function*(){
-	var prolog = new PrologInterface();
-	var id = yield* createChunk(prolog, []);
-	var count = 0;
-	for(let i = 0; i < 2000; i++) {
-	    let em = prolog.request("on((" + id + "), add_v(a(" + i + "), 1))");
-	    em.on("upstream", function(fid, req) {
-		assert.equal(fid, "'_','_'");
-		count += 1;
-	    });
+    describe('on/2', function(){
+	it('should support queries on chunks', $T(function*(){
+	    var prolog = new PrologInterface();
+	    var id = yield* createChunk(prolog, ["add_v((foo(bar) :- true), 1)"]);
+	    var em = prolog.request("on((" + id + "), logicQuery(X, foo(X), 1))");
+	    var res = (yield em.on('downstream', $S.resumeRaw()))[0];
+	    assert.equal(res, "res(bar,1)");
+	}));
+	it('should support patches', $T(function*(){
+	    var prolog = new PrologInterface();
+	    var id = yield* createChunk(prolog, []);
+	    var em = prolog.request("on((" + id + "), add_v((foo(bar) :- true), 1))");
 	    id = (yield em.on("success", $S.resumeRaw()))[0];
-	}
-	assert(count > 0, 'count > 0');
-    }));
+	    em = prolog.request("on((" + id + "), logicQuery(X, foo(X), 1))");
+	    var res = (yield em.on('downstream', $S.resumeRaw()))[0];
+	    yield em.on('done', $R());
+	    assert.equal(res, "res(bar,1)");
+	}));
+	it('should forward requests to other chunks when encountering a placeholder', $T(function*(){
+	    var prolog = new PrologInterface();
+	    var id = yield* createChunk(prolog, ["add_v(a(b), 1)", "h_putPlaceholder(x(y), (foo,bar))"]);
+	    // Query
+	    var em = prolog.request("on((" + id + "), logicQuery(X, foo(X), 1))");
+	    em.on("downstream", function(data) {
+		assert(false, 'This query should not have downstream results: ' + data);
+	    });
+	    var forward = yield em.on("upstream", $S.resumeRaw());
+	    assert.equal(forward[0], "foo,bar");
+	    assert(forward[1].match(/logicQuery\(_.*,foo\(_.*\),1\)/), "valid forward query: " + forward[1]);
+
+	    // add_v
+	    em = prolog.request("on((" + id + "), add_v(a(c), 1))");
+	    forward = yield em.on("upstream", $S.resumeRaw());
+	    assert.deepEqual(forward, ['foo,bar', 'add_v(a(c),1)']);
+
+	    // add_m
+	    em = prolog.request("on((" + id + "), add_m(rule(a(X), true, b(X)), 1))");
+	    forward = yield em.on("upstream", $S.resumeRaw());
+	}));
+
+	it('should request the creation of a new chunk if the size limit has been exceeded', $T(function*(){
+	    var prolog = new PrologInterface();
+	    yield setMaxDepth(prolog, 5, $S.resumeRaw());
+	    var id = yield* createChunk(prolog, []);
+	    var count = 0;
+	    for(let i = 0; i < 100; i++) {
+		let em = prolog.request("on((" + id + "), add_v(a(" + i + "), 1))");
+		em.on("upstream", function(fid, req) {
+		    assert.equal(fid, "'_','_'");
+		    count += 1;
+		});
+		id = (yield em.on("success", $S.resumeRaw()))[0];
+	    }
+	    assert(count > 0, 'count > 0');
+	}));
+	
+    });
+    function setMaxDepth(prolog, depth, cb) {
+	var em = prolog.request('set_max_depth(' + depth + ')');
+	em.on("success", cb);
+    }
+    describe('set_max_depth/1', function(){
+	it('should set the maximum depth of trees', $T(function*(){
+	    var prolog = new PrologInterface();
+	    var em = prolog.request('set_max_depth(0)');
+	    var res = yield em.on("success", $S.resumeRaw());
+	    assert.equal(res[0], 'was: 20');
+
+	    var id = yield* createChunk(prolog, []);
+	    em = prolog.request('on((' + id + '), add_v(a(1), 1))');
+	    // With depth 0, any addition should go upstream
+	    res = yield em.on('upstream', $S.resumeRaw());
+	}));
+    });
 });

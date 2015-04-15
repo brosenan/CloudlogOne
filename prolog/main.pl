@@ -62,6 +62,13 @@ main:handleCmd(on((Hc,Hv1), Op), C1, C2, yes) :-
 	rb_insert(C1, Hc, M2, C2),
 	writeHash(Hc, Hv2).
 
+main:handleCmd(set_max_depth(D), C, C, yes) :-
+	retract(treap:max_depth(OldD)),
+	assert(treap:max_depth(D)),
+	write('. was: '),
+	write(OldD),
+	nl.
+
 main:writeHash(H1, H2) :-
 	write('. '),
 	mywrite((H1,H2)),

@@ -1,5 +1,7 @@
 "use strict";
 var spawn = require('child_process').spawn;
+var fs = require('fs');
+
 var byline = require('byline');
 var EventEmitter = require('events').EventEmitter;
 
@@ -7,12 +9,13 @@ var $S = require('suspend'), $R = $S.resume, $T = function(gen) { return functio
 
 var upstreamRegex = /([^ ]+,[^ ]+) (.*)/;
 
-module.exports = function() {
+module.exports = function(logfile) {
     this.prolog = spawn('swipl', ['-f', __dirname + '/../prolog/main.pl', '-t', 'cloudlog1']);
-    
-    //this.prolog.stderr.pipe(process.stderr);
-    //this.prolog.stdout.pipe(process.stdout);
-    
+    if(logfile) {
+	let log = fs.createWriteStream(logfile);
+	this.prolog.stderr.pipe(log);
+	this.prolog.stdout.pipe(log);
+    }
     this.prolog.stdout.setEncoding('utf-8');
     this.lines = byline(this.prolog.stdout);
     var self = this;
