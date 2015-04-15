@@ -15,7 +15,7 @@ multiver:query(rawAxiom(Axiom), T, (Axiom, V)) :-
 	multiver:query(h(findDominated(Axiom)), T, (Axiom, V)).
 
 multiver:patch(add_m(Axiom, Value), T1, T2) :-
-	multiver:patch(h_addHook(Axiom, Value, _), T1, T2).
+	util:enforce(multiver:patch(h_addHook(Axiom, Value, _), T1, T2)).
 
 multiver:query(add_v(Axiom1, Value1), T, (Axiom3, ValueMult)) :-
 	multiver:query(h(getHook(Axiom1)), T, (Axiom2, Value2)),

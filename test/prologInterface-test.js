@@ -89,7 +89,7 @@ describe('PrologInterface', function(){
     }));
     it('should forward requests to other chunks when encountering a placeholder', $T(function*(){
 	var prolog = new PrologInterface();
-	var id = yield* createChunk(prolog, ["h_putPlaceholder(x, (foo,bar))"]);
+	var id = yield* createChunk(prolog, ["add_v(a(b), 1)", "h_putPlaceholder(x(y), (foo,bar))"]);
 	// Query
 	var em = prolog.request("on((" + id + "), logicQuery(X, foo(X), 1))");
 	em.on("downstream", function(data) {
@@ -98,6 +98,13 @@ describe('PrologInterface', function(){
 	var forward = yield em.on("upstream", $S.resumeRaw());
 	assert.equal(forward[0], "foo,bar");
 	assert(forward[1].match(/logicQuery\(_.*,foo\(_.*\),1\)/), "valid forward query: " + forward[1]);
-    }));
 
+	// add_v
+	em = prolog.request("on((" + id + "), add_v(a(c), 1))");
+	forward = yield em.on("upstream", $S.resumeRaw());
+	assert.deepEqual(forward, ['foo,bar', 'add_v(a(c),1)']);
+	// add_m
+	em = prolog.request("on((" + id + "), add_m(rule(a(X), true, b(X)), 1))");
+	forward = yield em.on("upstream", $S.resumeRaw());
+    }));
 });
