@@ -1,4 +1,5 @@
 "use strict";
+var EventEmitter = require('events').EventEmitter;
 var $S = require('suspend'), $R = $S.resume, $T = function(gen) { return function(done) { $S.run(gen, done); } };
 
 
@@ -16,3 +17,16 @@ clazz.init = function(patch, cb) {
 	cb(err);
     });
 };
+
+clazz.apply = function(v1, patch) {
+    var em1 = this._prolog.request('on((' + v1 + '), ' + patch + ')');
+    var em2 = new EventEmitter();
+    forwardEvent('success', em1, em2);
+    return em2;
+};
+
+function forwardEvent(ev, from, to) {
+    from.on(ev, function(data) {
+	to.emit(ev, data);
+    });
+}
