@@ -4,7 +4,7 @@
   "description": "A NoDatalog deductive database",
   "main": "index.js",
   "scripts": {
-    "test": "node_modules/mocha/bin/mocha --harmony"
+    "test": "node_modules/mocha/bin/mocha -C -R dot --harmony"
   },
   "repository": {
     "type": "git",
@@ -22,8 +22,11 @@
   },
   "homepage": "https://github.com/brosenan/cloudlog",
   "dependencies": {
+    "asyncgen": "^1.0.8",
     "byline": "^4.2.1",
-    "suspend": "^0.6.1"
+    "express": "^4.12.3",
+    "suspend": "^0.6.1",
+    "vercast": "^0.2.5"
   },
   "devDependencies": {
     "mocha": "^2.2.4"
