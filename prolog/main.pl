@@ -55,7 +55,8 @@ main:handleCmd(on((Hc,Hv1), Op), C1, C2, yes) :-
 	  % catch
 	    treap_error(depth_limit_exceeded(Hooks)),
 	    (main:convertHooks(Hooks, HookPatches),
-	    writeUpstream(('_', '_'), HookPatches), 
+	    main:calcInitialHash([Op|HookPatches], InitialHash),
+	    writeUpstream((InitialHash, '_'), [Op|HookPatches]), 
 	    (Hv2, M2) = (Hv1, M1))),
 	% catch
 	  forwardToPlaceholder(PH),
@@ -92,3 +93,8 @@ main:writeUpstream(PH, Op) :-
 main:convertHooks([], []).
 main:convertHooks([kv(K, V) | Hooks], [add_m(K, V) | Patches]) :-
 	main:convertHooks(Hooks, Patches).
+
+main:calcInitialHash(Patch, Hash) :-
+	hashedTree:empty(T0),
+	multiver:patch(Patch, T0, T1),
+	multiver:query(getHash, T1, Hash).

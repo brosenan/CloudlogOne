@@ -115,24 +115,31 @@ describe('PrologInterface', function(){
 
 	it('should request the creation of a new chunk if the size limit has been exceeded', $T(function*(){
 	    var prolog = new PrologInterface();
-	    yield setMaxDepth(prolog, 5, $S.resumeRaw());
-	    var id = yield* createChunk(prolog, []);
-	    var count = 0;
-	    for(let i = 0; i < 100; i++) {
-		let em = prolog.request("on((" + id + "), add_v(a(" + i + "), 1))");
-		em.on("upstream", function(fid, req) {
-		    assert.equal(fid, "'_','_'");
-		    count += 1;
-		});
-		id = (yield em.on("success", $S.resumeRaw()))[0];
-	    }
-	    assert(count > 0, 'count > 0');
+	    yield setMaxDepth(prolog, 1, $S.resumeRaw());
+	    
+	    var id = yield* createChunk(prolog, ['add_v(a, 1)']);
+	    
+	    var em = prolog.request("on((" + id + "), add_m(rule(b, true, c), 1))");
+	    id = (yield em.on("success", $S.resumeRaw()))[0];
+	    
+	    em = prolog.request("on((" + id + "), add_v(b, 1))");
+
+	    var res = yield em.on("upstream", $S.resumeRaw());
+	    var split = res[0].split(',');
+	    assert.equal(split[1], "'_'");
+	    assert(res[1].match(/add_m\(rule\(b,true,c\),1\)/), res[1] + ' match add_m(rule(b,true,c),1)');
+	    assert(res[1].match(/add_v\(b,1\)/), res[1] + ' match add_v(b,1)');
+
+	    // The first part of the ID should be the ID of the new chunk
+	    prolog = new PrologInterface();
+	    var newID = (yield prolog.request('create(' + res[1] + ')').on('success', $S.resumeRaw()))[0];
+	    assert.equal(split[0], newID.split(',')[0]);
 	}));
 	
 	it('should convert pending hooks to creation patches', $T(function*(){
 	    var prolog = new PrologInterface();
-	    yield setMaxDepth(prolog, 0, $S.resumeRaw());
-	    var id = yield* createChunk(prolog, []);
+	    yield setMaxDepth(prolog, 1, $S.resumeRaw());
+	    var id = yield* createChunk(prolog, ['add_v(foo, 1)']);
 	    id = (yield prolog.request("on((" + id + "), add_m(rule(a(X), true, b(X)), 1))").on("success", $S.resumeRaw()))[0];
 	    id = (yield prolog.request("on((" + id + "), add_m(rule(b(X), true, c(X)), 1))").on("success", $S.resumeRaw()))[0];
 	    var fwd = (yield prolog.request("on((" + id + "), add_v(a(b), 1))").on("upstream", $S.resumeRaw()));
@@ -148,11 +155,11 @@ describe('PrologInterface', function(){
     describe('set_max_depth/1', function(){
 	it('should set the maximum depth of trees', $T(function*(){
 	    var prolog = new PrologInterface();
-	    var em = prolog.request('set_max_depth(0)');
+	    var em = prolog.request('set_max_depth(1)');
 	    var res = yield em.on("success", $S.resumeRaw());
 	    assert.equal(res[0], 'was: 20');
 
-	    var id = yield* createChunk(prolog, []);
+	    var id = yield* createChunk(prolog, ['add_v(foo, 1)']);
 	    em = prolog.request('on((' + id + '), add_v(a(1), 1))');
 	    // With depth 0, any addition should go upstream
 	    res = yield em.on('upstream', $S.resumeRaw());

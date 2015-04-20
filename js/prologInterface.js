@@ -12,9 +12,9 @@ var upstreamRegex = /([^ ]+,[^ ]+) (.*)/;
 module.exports = function(logfile) {
     this.prolog = spawn('swipl', ['-f', __dirname + '/../prolog/main.pl', '-t', 'cloudlog1']);
     if(logfile) {
-	let log = fs.createWriteStream(logfile);
-	this.prolog.stderr.pipe(log);
-	this.prolog.stdout.pipe(log);
+	this._log = fs.createWriteStream(logfile);
+	this.prolog.stderr.pipe(this._log);
+	this.prolog.stdout.pipe(this._log);
     }
     this.prolog.stdout.setEncoding('utf-8');
     this.lines = byline(this.prolog.stdout);
@@ -41,6 +41,9 @@ module.exports = function(logfile) {
 };
 
 module.exports.prototype.request = function(req) {
+    if(this._log) {
+	this._log.write('> ' + req + '\n');
+    }
     if(this.emitter == null) {
 	this.send(req);
 	this.emitter = new EventEmitter();
