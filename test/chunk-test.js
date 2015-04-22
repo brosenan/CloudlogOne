@@ -12,8 +12,8 @@ var upstream = {};
 
 describe('Chunk', function(){
     beforeEach(function() {
-//	prolog = new PrologInterface('chunk-test.log');
-	prolog = new PrologInterface();
+	prolog = new PrologInterface('chunk-test.log');
+//	prolog = new PrologInterface();
     });
     describe('.init(patch, cb(err, v0))', function(){
 	it('should initialize a new chunk based on the given creation patch', $T(function*(){
@@ -77,9 +77,31 @@ describe('Chunk', function(){
 	    upstream.apply.firstCall.args[2](undefined, firstHalf + ',xxx');
 	    newID = (yield em.on('success', $S.resumeRaw()))[0];
 	    // Now the placeholder should be ...,xxx
-	    chunk.apply(newID, 'add_v((bar(boo):-true),1)').on('upstream', $S.fork());
-	    var res = $S.join();
-	    console.log(res);
+	    upstream.apply = sinon.spy($S.resumeRaw());
+	    em = chunk.apply(newID, 'add_v((bar(boo):-true),1)');
+	    yield;
+	    assert.equal(upstream.apply.firstCall.args[0], firstHalf + ',xxx');
+	}));
+	it('should replace placeholders only when they change', $T(function*(){
+	    var upstream = {};
+	    var chunk = new Chunk(prolog, upstream);
+	    yield prolog.request('set_max_depth(1)').on('done', $R());
+	    var v = yield chunk.init('add_v((foo(bar):-true), 1)', $R());
+	    // Create a placeholder for a(X)
+	    upstream.apply = $S.resumeRaw();
+	    var em = chunk.apply(v, 'add_v(a(1), 1)');
+	    var args = yield;
+	    // Fake a response from the upstream client
+	    var upV = args[0].replace("'_'", 'foo');
+	    args[2](undefined, upV);
+	    v = (yield em.on('success', $S.resumeRaw()))[0];
+	    // Now we have a placeholder '...',foo
+	    upstream.apply = $S.resumeRaw();
+	    em = chunk.apply(v, 'add_m(rule(a(X), true, b(X)), 1)');
+	    args = yield;
+	    args[2](undefined, args[0].replace('foo', 'bar'));
+	    // Version should not change
+	    var v1 = (yield em.on('success', $S.resumeRaw()))[0];
 	}));
     });
 });

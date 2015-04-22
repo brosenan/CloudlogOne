@@ -72,6 +72,13 @@ main:handleCmd(set_max_depth(D), C, C, yes) :-
 	write(OldD),
 	nl.
 
+main:handleCmd(dump((Hc, Hv)), C, C, yes) :-
+	rb_lookup(Hc, M, C),
+	rb_lookup(Hv, T, M),
+	write('. '),
+	main:mywrite(T),
+	nl.
+
 main:writeHash(H1, H2) :-
 	write('. '),
 	mywrite((H1,H2)),
@@ -84,9 +91,18 @@ main:hasPlaceholder(ph(PH), PH).
 main:hasPlaceholder((_, ph(PH)), PH).
 
 main:writeUpstream(PH, Op) :-
+	if(main:getKey(Op, Key),
+	(
+	    write('@ '), 
+	    main:mywrite(Key),
+	    nl
+	),
+	(
+	    true
+	)),
 	write('? '), 
 	main:mywrite(PH), 
-	write(' '), 
+	write(' '),
 	main:mywrite(Op), 
 	nl.
 
@@ -98,3 +114,10 @@ main:calcInitialHash(Patch, Hash) :-
 	hashedTree:empty(T0),
 	multiver:patch(Patch, T0, T1),
 	multiver:query(getHash, T1, Hash).
+
+main:getKey(add_v(Key, _), Key).
+main:getKey(add_m(Rule, _), Key) :-
+	treap:hookDomain(Rule, Key).
+main:getKey(logicQuery(_, Key, _), Key).
+main:getKey([Op | _], Key) :-
+	main:getKey(Op, Key).

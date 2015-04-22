@@ -21,6 +21,7 @@ module.exports = function(logfile) {
     var self = this;
     this.emitter = null;
     this.queue = [];
+    var key;
     this.lines.on('data', function(data) {
 	if(data.substr(0, 2) === '! ') {
 	    self.emitter.emit('error', new Error(data.substr(2)));
@@ -30,12 +31,15 @@ module.exports = function(logfile) {
 	    self.done();
 	} else if(data.substr(0, 2) === ': ') {
 	    self.emitter.emit('downstream', data.substr(2));
+	} else if(data.substr(0, 2) === '@ ') {
+	    key = data.substr(2);
 	} else if(data.substr(0, 2) === '? ') {
 	    let m = data.substr(2).match(upstreamRegex);
 	    if(m == null) {
 		throw Error('Bad upstream response: ' + data);
 	    }
-	    self.emitter.emit('upstream', m[1], m[2]);
+	    self.emitter.emit('upstream', m[1], key, m[2]);
+	    key = undefined;
 	}
     });
 };

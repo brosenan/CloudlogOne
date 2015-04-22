@@ -54,11 +54,11 @@ test(add_m_fact, [R == (bar, 15)]) :-
 	multiver:patch(add_m(foo(_), 5), T0, T1),
 	multiver:query(add_v(rule(foo(abc), true, bar), 3), T1, R).
 
-% Patch add_m must throw on a placeholder
-test(add_m_throws_on_placeholder, [throws(forwardToPlaceholder(myOtherPlaceholder))]) :-
+% Patch add_m must ignore placeholders
+test(add_m_ignores_placeholder, [T1 == T2]) :-
 	hashedTree:empty(T0),
 	multiver:patch(h_putPlaceholder(a, myOtherPlaceholder), T0, T1),
-	multiver:patch(add_m(rule(b, true, c), 1), T1, _).
+	multiver:patch(add_m(rule(b, true, c), 1), T1, T2).
 
 % [query] add_m(+Axiom, +Value): Perform bottom-up evaluation as a result of adding a hook for matching axioms.  It scans the tree for matches that already exist.
 test(add_v_fact, [R == (bar(abc), 6)]) :-

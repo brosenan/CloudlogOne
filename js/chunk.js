@@ -26,8 +26,8 @@ clazz.apply = function(v1, patch) {
     var patchesOut = [];
     $S.run(function*() {
 	var em1 = self._prolog.request('on((' + v1 + '), ' + patch + ')');
-	em1.on('upstream', function(v, p) {
-	    patchesOut.push({v: v, p: p});
+	em1.on('upstream', function(v, k, p) {
+	    patchesOut.push({v: v, k: k, p: p});
 	});
 	var v2 = (yield em1.on('success', $S.resumeRaw()))[0];
 	patchesOut.forEach(function(pair) {
@@ -35,7 +35,14 @@ clazz.apply = function(v1, patch) {
 	});
 	var newIDs = yield $S.join();
 	for(let i = 0; i < newIDs.length; i++) {
-	    v2 = (yield self._prolog.request('on((' + v2 + '), h_putPlaceholder(' + patchesOut[i].p + ',(' + newIDs[i] + ')))').on('success', $S.resumeRaw()))[0];
+	    let patch;
+	    if(patchesOut[i].v.substring(patchesOut[i].v.length-4) === ",'_'") {
+		patch = 'h_putPlaceholder(' + patchesOut[i].k + ',(' + newIDs[i] + '))';
+	    } else {
+		patch = 'h_updatePlaceholder(' + patchesOut[i].k + ',(' + patchesOut[i].v + '),(' + newIDs[i] + '))';
+	    }
+	    let em = self._prolog.request('on((' + v2 + '), ' + patch + ')');
+	    v2 = (yield em.on('success', $S.resumeRaw()))[0];
 	}
 	em2.emit('success', v2);
     });

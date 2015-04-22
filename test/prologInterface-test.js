@@ -100,13 +100,17 @@ describe('PrologInterface', function(){
 		assert(false, 'This query should not have downstream results: ' + data);
 	    });
 	    var forward = yield em.on("upstream", $S.resumeRaw());
+	    // First argument is the placeholder
 	    assert.equal(forward[0], "foo,bar");
-	    assert(forward[1].match(/logicQuery\(_.*,foo\(_.*\),1\)/), "valid forward query: " + forward[1]);
+	    // Second argument is the key
+	    assert(forward[1].match(/foo\(_.*\)/), "valid key: " + forward[1]);
+	    // Third argument is the query or patch to be forwarded
+	    assert(forward[2].match(/logicQuery\(_.*,foo\(_.*\),1\)/), "valid forward query: " + forward[2]);
 
 	    // add_v
 	    em = prolog.request("on((" + id + "), add_v(a(c), 1))");
 	    forward = yield em.on("upstream", $S.resumeRaw());
-	    assert.deepEqual(forward, ['foo,bar', 'add_v(a(c),1)']);
+	    assert.deepEqual(forward, ['foo,bar', 'a(c)', 'add_v(a(c),1)']);
 
 	    // add_m
 	    em = prolog.request("on((" + id + "), add_m(rule(a(X), true, b(X)), 1))");
@@ -127,12 +131,12 @@ describe('PrologInterface', function(){
 	    var res = yield em.on("upstream", $S.resumeRaw());
 	    var split = res[0].split(',');
 	    assert.equal(split[1], "'_'");
-	    assert(res[1].match(/add_m\(rule\(b,true,c\),1\)/), res[1] + ' match add_m(rule(b,true,c),1)');
-	    assert(res[1].match(/add_v\(b,1\)/), res[1] + ' match add_v(b,1)');
+	    assert(res[2].match(/add_m\(rule\(b,true,c\),1\)/), res[2] + ' match add_m(rule(b,true,c),1)');
+	    assert(res[2].match(/add_v\(b,1\)/), res[2] + ' match add_v(b,1)');
 
 	    // The first part of the ID should be the ID of the new chunk
 	    prolog = new PrologInterface();
-	    var newID = (yield prolog.request('create(' + res[1] + ')').on('success', $S.resumeRaw()))[0];
+	    var newID = (yield prolog.request('create(' + res[2] + ')').on('success', $S.resumeRaw()))[0];
 	    assert.equal(split[0], newID.split(',')[0]);
 	}));
 	
@@ -143,8 +147,9 @@ describe('PrologInterface', function(){
 	    id = (yield prolog.request("on((" + id + "), add_m(rule(a(X), true, b(X)), 1))").on("success", $S.resumeRaw()))[0];
 	    id = (yield prolog.request("on((" + id + "), add_m(rule(b(X), true, c(X)), 1))").on("success", $S.resumeRaw()))[0];
 	    var fwd = (yield prolog.request("on((" + id + "), add_v(a(b), 1))").on("upstream", $S.resumeRaw()));
-	    assert(fwd[1].match(/add_m\(rule\(a\(_G[0-9]*\),true,b\(_G[0-9]*\)\),1\)/), 'should match add_m(rule(a(X), true, b(X)), 1)): ' + fwd[1]);
-	    assert(fwd[1].match(/add_m\(rule\(b\(_G[0-9]*\),true,c\(_G[0-9]*\)\),1\)/), 'should match add_m(rule(b(X), true, c(X)), 1)): ' + fwd[1]);
+	    assert.equal(fwd[1], 'a(b)');
+	    assert(fwd[2].match(/add_m\(rule\(a\(_G[0-9]*\),true,b\(_G[0-9]*\)\),1\)/), 'should match add_m(rule(a(X), true, b(X)), 1)): ' + fwd[2]);
+	    assert(fwd[2].match(/add_m\(rule\(b\(_G[0-9]*\),true,c\(_G[0-9]*\)\),1\)/), 'should match add_m(rule(b(X), true, c(X)), 1)): ' + fwd[2]);
 	}));
 
     });
