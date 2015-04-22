@@ -29,6 +29,7 @@ clazz.apply = function(v1, patch) {
 	em1.on('upstream', function(v, k, p) {
 	    patchesOut.push({v: v, k: k, p: p});
 	});
+	forwardEvent('downstream', em1, em2);
 	var v2 = (yield em1.on('success', $S.resumeRaw()))[0];
 	patchesOut.forEach(function(pair) {
 	    self._upstream.apply(pair.v, pair.p, $S.fork());
