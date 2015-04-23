@@ -170,7 +170,7 @@ describe('PrologInterface', function(){
 	    var id2 = (yield em.on('success', $S.resumeRaw()))[0];
 	    var split1 = id.split(',');
 	    var split2 = id2.split(',');
-	    assert.deepEqual(res, [split1[0], 'patch(' + split1[1] + ',add_v(a(123),1))']);
+	    assert.deepEqual(res, [split1[0], 'patch(' + split1[0] + ',' + split1[1] + ',add_v(a(123),1))']);
 	}));
 	it('should not emit "persist" events for non-patches', $T(function*(){
 	    var prolog = new PrologInterface();
@@ -198,4 +198,17 @@ describe('PrologInterface', function(){
 	    res = yield em.on('upstream', $S.resumeRaw());
 	}));
     });
+    describe('patch/3', function(){
+	it('should apply the given patch on the given version in the given chunk', $T(function*(){
+	    var prolog = new PrologInterface();
+	    var id = yield* createChunk(prolog, []);
+	    var em = prolog.request('patch(' + id + ',(add_v(a(1):-true,1)))');
+	    id = (yield em.on('success', $S.resumeRaw()))[0];
+	    em = prolog.request('on((' + id + '), logicQuery(X, a(X), 1))');
+	    var res = yield em.on('downstream', $S.resumeRaw());
+	    assert.deepEqual(res, ['res(1,1)']);
+	}));
+
+    });
+
 });

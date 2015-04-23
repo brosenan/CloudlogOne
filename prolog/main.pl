@@ -55,7 +55,7 @@ main:handleCmd(on((Hc,Hv1), Op), C1, C2, yes) :-
 	    (multiver:patch(Op, M1, Hv1, Hv2, M2),
 	    if(Hv1 \= Hv2,
 	    (
-		main:reportPersist(Hc, patch(Hv1, Op))
+		main:reportPersist(Hc, patch(Hc, Hv1, Op))
 	    ), % else
 	    (
 		true
@@ -86,6 +86,12 @@ main:handleCmd(dump((Hc, Hv)), C, C, yes) :-
 	write('. '),
 	main:mywrite(T),
 	nl.
+
+main:handleCmd(patch(Hc,Hv1,Patch), C1, C2, yes) :-
+	rb_lookup(Hc, M1, C1),
+	multiver:patch(Patch, M1, Hv1, Hv2, M2),
+	rb_insert(C1, Hc, M2, C2),
+	writeHash(Hc, Hv2).
 
 main:writeHash(H1, H2) :-
 	write('. '),

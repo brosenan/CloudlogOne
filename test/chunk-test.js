@@ -9,8 +9,10 @@ var Chunk = require('../js/chunk.js');
 
 var prolog = null;
 var upstream = {};
+var vercast = require('vercast');
 
 function bucketStore() {
+    return new vercast.DummyBucketStore();
 }
 
 describe('Chunk', function(){
@@ -20,14 +22,14 @@ describe('Chunk', function(){
     });
     describe('.init(patch, cb(err, v0))', function(){
 	it('should initialize a new chunk based on the given creation patch', $T(function*(){
-	    var chunk = new Chunk(prolog);
+	    var chunk = new Chunk(prolog, null, bucketStore());
 	    var v0 = yield chunk.init('add_v((foo(bar) :- true), 1)', $R());
 	    assert.equal(typeof v0, 'string');
 	    var split = v0.split(',');
 	    assert.equal(split[0], split[1]);
 	}));
 	it('should report errors to the callback', $T(function*(){
-	    var chunk = new Chunk(prolog);
+	    var chunk = new Chunk(prolog, null, bucketStore());
 	    try {
 		var v0 = yield chunk.init('foobar', $R());
 		assert(false, 'Should fail');
@@ -38,20 +40,20 @@ describe('Chunk', function(){
     });
     describe('.apply(v1, patch)', function(){
 	it('should return an EventEmitter', $T(function*(){
-	    var chunk = new Chunk(prolog);
+	    var chunk = new Chunk(prolog, null, bucketStore());
 	    var v = yield chunk.init('add_v((foo(bar) :- true), 1)', $R());
 	    var em = chunk.apply(v, 'logicQuery(X, foo(X), 1)');
 	    assert(em instanceof EventEmitter, em + ' instanceof EventEmitter');
 	}));
 	it('should emit a success event, providing the new version', $T(function*(){
-	    var chunk = new Chunk(prolog);
+	    var chunk = new Chunk(prolog, null, bucketStore());
 	    var v = yield chunk.init('add_v((foo(bar) :- true), 1)', $R());
 	    var em = chunk.apply(v, 'logicQuery(X, foo(X), 1)');
 	    var v2 = yield em.on('success', $S.resumeRaw());
 	}));
 	it('should forward any upstream requests to the upstream client', $T(function*(){
 	    var upstream = {};
-	    var chunk = new Chunk(prolog, upstream);
+	    var chunk = new Chunk(prolog, upstream, bucketStore());
 	    yield prolog.request('set_max_depth(1)').on('done', $R());
 	    var v = yield chunk.init('add_v((foo(bar):-true), 1)', $R());
 	    upstream.apply = sinon.spy($S.resumeRaw());
@@ -87,7 +89,7 @@ describe('Chunk', function(){
 	}));
 	it('should replace placeholders only when they change', $T(function*(){
 	    var upstream = {};
-	    var chunk = new Chunk(prolog, upstream);
+	    var chunk = new Chunk(prolog, upstream, bucketStore());
 	    yield prolog.request('set_max_depth(1)').on('done', $R());
 	    var v = yield chunk.init('add_v((foo(bar):-true), 1)', $R());
 	    // Create a placeholder for a(X)
@@ -106,7 +108,7 @@ describe('Chunk', function(){
 	    yield em.on('success', $S.resumeRaw());
 	}));
 	it('should emit downstream results', $T(function*(){
-	    var chunk = new Chunk(prolog);
+	    var chunk = new Chunk(prolog, null, bucketStore());
 	    var v = yield chunk.init('add_v((foo(bar):-true), 1)', $R());
 	    var em = chunk.apply(v, 'logicQuery(X, foo(X), 1)');
 	    var res = yield em.on('downstream', $S.resumeRaw());
@@ -115,14 +117,27 @@ describe('Chunk', function(){
 
     });
     describe('.open(id, cb(err))', function(){
-	it.skip('should restore the content of a chunk with the same ID', $T(function*(){
+	it('should restore the content of a chunk with the same ID', $T(function*(){
 	    var bs = bucketStore();
 	    var chunk1 = new Chunk(prolog, null, bs);
 	    var v = yield chunk1.init('add_v((foo(bar):-true), 1)', $R());
 	    var chunk2 = new Chunk(new PrologInterface(), null, bs);
+	    yield chunk2.open(v.split(',')[0], $R());
 	    var em = chunk2.apply(v, 'logicQuery(X, foo(X), 1)');
 	    var res = yield em.on('downstream', $S.resumeRaw());
 	    assert.deepEqual(res, ['res(bar,1)']);
 	}));
+	it('should restore patches applied to chunks', $T(function*(){
+	    var bs = bucketStore();
+	    var chunk1 = new Chunk(prolog, null, bs);
+	    var v = yield chunk1.init('add_v((foo(bar):-true), 1)', $R());
+	    v = (yield chunk1.apply(v, 'add_v((bar(foo):-true), 1)').on('success', $S.resumeRaw()))[0];
+	    var chunk2 = new Chunk(new PrologInterface(), null, bs);
+	    yield chunk2.open(v.split(',')[0], $R());
+	    var em = chunk2.apply(v, 'logicQuery(X, bar(X), 1)');
+	    var res = yield em.on('downstream', $S.resumeRaw());
+	    assert.deepEqual(res, ['res(foo,1)']);
+	}));
+
     });
 });
