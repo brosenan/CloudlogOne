@@ -67,7 +67,7 @@ describe('PrologInterface', function(){
 	    assert.equal(split[0], split[1]);
 	}));
 	it('should emit a "persist" event providing the construction patch', $T(function*(){
-	    var prolog = new PrologInterface('persist1.log');
+	    var prolog = new PrologInterface();
 	    var em = prolog.request("create([add_v((foo(bar):-true),1)])");
 	    var persist = yield em.on('persist', $S.resumeRaw());
 	    var v = (yield em.on('success', $S.resumeRaw()))[0];
@@ -173,7 +173,7 @@ describe('PrologInterface', function(){
 	    assert.deepEqual(res, [split1[0], 'patch(' + split1[1] + ',add_v(a(123),1))']);
 	}));
 	it('should not emit "persist" events for non-patches', $T(function*(){
-	    var prolog = new PrologInterface('test.log');
+	    var prolog = new PrologInterface();
 	    var id = yield* createChunk(prolog, ["add_v((foo(bar) :- true), 1)"]);
 	    var em = prolog.request("on((" + id + "), logicQuery(X, foo(X), 1))");
 	    em.on('persist', function() { assert(false, "This should not be called"); });
