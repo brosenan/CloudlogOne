@@ -23,4 +23,41 @@ describe('FireAndForget', function(){
 	    }, ms);
 	}
     }));
+
+    it('should throw and exception when trying to fork after a join has completed.', $T(function*(){
+	var fnf = new FireAndForget();
+
+	delayed(1, fnf.fork());
+	delayed(1, fnf.fork());
+	delayed(1, fnf.fork());
+	
+	yield fnf.join($R());
+	assert.throws(function() { fnf.fork(); }, /Attempting to fork after a join has completed/);
+
+	function delayed(ms, cb) {
+	    setTimeout(function() {
+		cb();
+	    }, ms);
+	}
+    }));
+    it('should forward errors provided to fork callbacks to the join', $T(function*(){
+	var fnf = new FireAndForget();
+
+	delayed(1, fnf.fork());
+	delayed(1, fnf.fork(), Error('foo'));
+	delayed(1, fnf.fork());
+	
+	try {
+	    yield fnf.join($R());
+	    assert(false, 'Should fail');
+	} catch(e) {
+	    assert.equal(e.message, 'foo');
+	}
+
+	function delayed(ms, cb, exception) {
+	    setTimeout(function() {
+		cb(exception);
+	    }, ms);
+	}
+    }));
 });

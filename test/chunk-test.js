@@ -15,8 +15,8 @@ function bucketStore() {
 
 describe('Chunk', function(){
     beforeEach(function() {
-	prolog = new PrologInterface('chunk-test.log');
-//	prolog = new PrologInterface();
+//	prolog = new PrologInterface('chunk-test.log');
+	prolog = new PrologInterface();
     });
     describe('.init(patch, cb(err, v0))', function(){
 	it('should initialize a new chunk based on the given creation patch', $T(function*(){
