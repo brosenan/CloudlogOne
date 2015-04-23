@@ -37,6 +37,7 @@ main:handleCmd(create(Patch), C1, C2, yes) :-
 	multiver:query(getHash, T0, H0),
 	multiver:init(M0, T0, H0, M1),
 	multiver:patch(Patch, M1, H0, H1, M2),
+	main:reportPersist(H1, create(Patch)),
 	rb_insert(C1, H1, M2, C2),
 	writeHash(H1, H1).
 
@@ -51,7 +52,14 @@ main:handleCmd(on((Hc,Hv1), Op), C1, C2, yes) :-
 	    (write(': '), main:mywrite(R), nl))),
 	catch(
 	  catch(
-	    multiver:patch(Op, M1, Hv1, Hv2, M2),
+	    (multiver:patch(Op, M1, Hv1, Hv2, M2),
+	    if(Hv1 \= Hv2,
+	    (
+		main:reportPersist(Hc, patch(Hv1, Op))
+	    ), % else
+	    (
+		true
+	    ))),
 	  % catch
 	    treap_error(depth_limit_exceeded(Hooks)),
 	    (main:convertHooks(Hooks, HookPatches),
@@ -121,3 +129,10 @@ main:getKey(add_m(Rule, _), Key) :-
 main:getKey(logicQuery(_, Key, _), Key).
 main:getKey([Op | _], Key) :-
 	main:getKey(Op, Key).
+
+main:reportPersist(Hc, Op) :-
+	write('& '),
+	main:mywrite(Hc),
+	write(' '),
+	main:mywrite(Op),
+	nl.

@@ -4,7 +4,7 @@
   "description": "A NoDatalog deductive database",
   "main": "index.js",
   "scripts": {
-    "test": "node_modules/mocha/bin/mocha -C -R dot --harmony && (cd prolog; ./run-tests.sh)"
+    "test": "(cd prolog; ./run-tests.sh) && node_modules/mocha/bin/mocha -C -R dot --harmony"
   },
   "repository": {
     "type": "git",

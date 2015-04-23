@@ -115,7 +115,7 @@ describe('Chunk', function(){
 
     });
     describe('.open(id, cb(err))', function(){
-	it('should restore the content of a chunk with the same ID', $T(function*(){
+	it.skip('should restore the content of a chunk with the same ID', $T(function*(){
 	    var bs = bucketStore();
 	    var chunk1 = new Chunk(prolog, null, bs);
 	    var v = yield chunk1.init('add_v((foo(bar):-true), 1)', $R());
