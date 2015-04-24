@@ -29,9 +29,8 @@ clazz.init = function(patch, cb) {
     });
 };
 
-clazz.apply = function(v1, patch) {
+clazz.apply = function(v1, patch, downCB, cb) {
     var self = this;
-    var em2 = new EventEmitter();
     var patchesIn = [];
     var patchesOut = [];
     var fnf = new FireAndForget();
@@ -40,7 +39,9 @@ clazz.apply = function(v1, patch) {
 	em1.on('upstream', function(v, k, p) {
 	    patchesOut.push({v: v, k: k, p: p});
 	});
-	forwardEvent('downstream', em1, em2);
+	em1.on('downstream', function(res) {
+	    downCB(res);
+	});
 	var v2 = (yield em1.on('success', $S.resumeRaw()))[0];
 	patchesOut.forEach(function(pair) {
 	    self._upstream.apply(pair.v, pair.p, $S.fork());
@@ -57,9 +58,8 @@ clazz.apply = function(v1, patch) {
 	    v2 = (yield em.on('success', $S.resumeRaw()))[0];
 	}
 	yield fnf.join($R());
-	em2.emit('success', v2);
-    });
-    return em2;
+	return v2;
+    }, cb);
 };
 
 function forwardEvent(ev, from, to) {
