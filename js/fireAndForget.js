@@ -16,12 +16,16 @@ clazz.fork = function() {
 	    return self._cb(err);
 	}
 	self._count -= 1;
-	if(self._count == 0) {
+	if(self._cb && self._count == 0) {
 	    self._joined = true;
 	    self._cb();
 	}
     };
 };
 clazz.join = function(cb) {
-    this._cb = cb;
+    if(this._count == 0) {
+	cb();
+    } else {
+	this._cb = cb;
+    }
 };

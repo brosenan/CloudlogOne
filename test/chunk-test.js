@@ -12,7 +12,8 @@ var upstream = {};
 var vercast = require('vercast');
 
 function bucketStore() {
-    return new vercast.DummyBucketStore();
+    var bs = new vercast.DummyBucketStore();
+    return bs;
 }
 
 describe('Chunk', function(){
@@ -119,6 +120,7 @@ describe('Chunk', function(){
     describe('.open(id, cb(err))', function(){
 	it('should restore the content of a chunk with the same ID', $T(function*(){
 	    var bs = bucketStore();
+	    bs.delay = 1;
 	    var chunk1 = new Chunk(prolog, null, bs);
 	    var v = yield chunk1.init('add_v((foo(bar):-true), 1)', $R());
 	    var chunk2 = new Chunk(new PrologInterface(), null, bs);
@@ -129,6 +131,7 @@ describe('Chunk', function(){
 	}));
 	it('should restore patches applied to chunks', $T(function*(){
 	    var bs = bucketStore();
+	    bs.delay = 1;
 	    var chunk1 = new Chunk(prolog, null, bs);
 	    var v = yield chunk1.init('add_v((foo(bar):-true), 1)', $R());
 	    v = (yield chunk1.apply(v, 'add_v((bar(foo):-true), 1)').on('success', $S.resumeRaw()))[0];

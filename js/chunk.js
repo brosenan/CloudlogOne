@@ -3,6 +3,7 @@ var EventEmitter = require('events').EventEmitter;
 var $S = require('suspend'), $R = $S.resume, $T = function(gen) { return function(done) { $S.run(gen, done); } };
 var vercast = require('vercast');
 var asyncgen = require('asyncgen');
+var FireAndForget = require('./fireAndForget.js');
 
 module.exports = function(prolog, upstream, bucketStore) {
     this._prolog = prolog;
@@ -12,12 +13,19 @@ module.exports = function(prolog, upstream, bucketStore) {
 var clazz = module.exports.prototype;
 
 clazz.init = function(patch, cb) {
-    var em = this._request('create(' + patch + ')');
+    var fnf = new FireAndForget();
+    var em = this._request('create(' + patch + ')', fnf);
+    var cb1 = fnf.fork();
+    var res;
     em.on('success', function(v0) {
-	cb(undefined, v0);
+	res = v0;
+	cb1();
     });
     em.on('error', function(err) {
-	cb(err);
+	cb1(err);
+    });
+    fnf.join(function(err) {
+	cb(err, res);
     });
 };
 
@@ -26,8 +34,9 @@ clazz.apply = function(v1, patch) {
     var em2 = new EventEmitter();
     var patchesIn = [];
     var patchesOut = [];
+    var fnf = new FireAndForget();
     $S.run(function*() {
-	var em1 = self._request('on((' + v1 + '), ' + patch + ')');
+	var em1 = self._request('on((' + v1 + '), ' + patch + ')', fnf);
 	em1.on('upstream', function(v, k, p) {
 	    patchesOut.push({v: v, k: k, p: p});
 	});
@@ -44,9 +53,10 @@ clazz.apply = function(v1, patch) {
 	    } else {
 		patch = 'h_updatePlaceholder(' + patchesOut[i].k + ',(' + patchesOut[i].v + '),(' + newIDs[i] + '))';
 	    }
-	    let em = self._request('on((' + v2 + '), ' + patch + ')');
+	    let em = self._request('on((' + v2 + '), ' + patch + ')', fnf);
 	    v2 = (yield em.on('success', $S.resumeRaw()))[0];
 	}
+	yield fnf.join($R());
 	em2.emit('success', v2);
     });
     return em2;
@@ -58,13 +68,14 @@ function forwardEvent(ev, from, to) {
     });
 }
 
-clazz._request = function(op) {
+clazz._request = function(op, fnf) {
     var self = this;
     var em = this._prolog.request(op);
     em.on('persist', function(id, op) {
+	if(!fnf) return;
 	asyncgen.async(function*() {
 	    yield* self._bucketStore.append(id, [op]);
-	})(function() {});
+	})(fnf.fork());
     });
     return em;
 };

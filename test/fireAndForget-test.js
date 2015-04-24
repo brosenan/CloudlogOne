@@ -60,4 +60,10 @@ describe('FireAndForget', function(){
 	    }, ms);
 	}
     }));
+    it('should support callbacks being called before .join()', $T(function*(){
+	var fnf = new FireAndForget();
+	fnf.fork()();
+	yield fnf.join($R());
+    }));
+
 });
