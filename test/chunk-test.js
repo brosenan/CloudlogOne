@@ -136,7 +136,6 @@ describe('Chunk', function(){
 	    var res = yield chunk2.apply(v, 'logicQuery(X, bar(X), 1)', $S.resumeRaw(), function() {});
 	    assert.deepEqual(res, ['res(foo,1)']);
 	}));
-
     });
 });
 

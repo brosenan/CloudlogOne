@@ -42,6 +42,9 @@ clazz.apply = function(v1, patch, downCB, cb) {
 	em1.on('downstream', function(res) {
 	    downCB(res);
 	});
+	em1.on('error', function(err) {
+	    cb(err);
+	});
 	var v2 = (yield em1.on('success', $S.resumeRaw()))[0];
 	patchesOut.forEach(function(pair) {
 	    self._upstream.apply(pair.v, pair.p, $S.fork());
@@ -55,6 +58,9 @@ clazz.apply = function(v1, patch, downCB, cb) {
 		patch = 'h_updatePlaceholder(' + patchesOut[i].k + ',(' + patchesOut[i].v + '),(' + newIDs[i] + '))';
 	    }
 	    let em = self._request('on((' + v2 + '), ' + patch + ')', fnf);
+	    em.on('error', function(err) {
+		cb(err);
+	    });
 	    v2 = (yield em.on('success', $S.resumeRaw()))[0];
 	}
 	yield fnf.join($R());
@@ -88,7 +94,8 @@ clazz.open = function(id, cb) {
 	})($R());
 	for(let i = 0; i < bucket.length; i++) {
 	    let em = self._request(bucket[i]);
-	    yield em.on('done', $R());
+	    em.on('error', function(err) { cb(err); });
+	    yield em.on('success', $S.resumeRaw());
 	}
     }, cb);
 };
