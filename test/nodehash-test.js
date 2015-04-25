@@ -2,7 +2,7 @@
 
 var assert = require('assert');
 
-var NodeHash = require('../nodehash.js');
+var NodeHash = require('../js/nodehash.js');
 
 describe('NodeHash', function(){
     describe('.hashIndex(key[, rotation])', function(){
