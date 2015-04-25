@@ -23,6 +23,7 @@
   "homepage": "https://github.com/brosenan/cloudlog",
   "dependencies": {
     "asyncgen": "^1.0.8",
+    "body-parser": "^1.12.3",
     "byline": "^4.2.1",
     "express": "^4.12.3",
     "lru": "^0.1.5",
