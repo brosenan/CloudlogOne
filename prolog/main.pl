@@ -42,7 +42,13 @@ main:handleCmd(create(Patch), C1, C2, yes) :-
 	writeHash(H1, H1).
 
 main:handleCmd(on((Hc,Hv1), Op), C1, C2, yes) :-
-	rb_lookup(Hc, M1, C1),
+	if(rb_lookup(Hc, M1, C1),
+	(
+	    true
+	), % else
+	(
+	    throw(chunkDoesNotExist(Hc))
+	)),
 	forall(
 	  multiver:query(Op, M1, Hv1, R),
 	% do
@@ -92,6 +98,11 @@ main:handleCmd(patch(Hc,Hv1,Patch), C1, C2, yes) :-
 	multiver:patch(Patch, M1, Hv1, Hv2, M2),
 	rb_insert(C1, Hc, M2, C2),
 	writeHash(Hc, Hv2).
+
+main:handleCmd(prune(Hc), C1, C2, yes) :-
+	rb_delete(C1, Hc, C2),
+	write('. pruned'),
+	nl.
 
 main:writeHash(H1, H2) :-
 	write('. '),

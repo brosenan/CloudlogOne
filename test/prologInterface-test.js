@@ -210,5 +210,16 @@ describe('PrologInterface', function(){
 	}));
 
     });
-
+    describe('prune/1', function(){
+	it('should discard of a the given chunk', $T(function*(){
+	    var prolog = new PrologInterface();
+	    var id = yield* createChunk(prolog, ['add_v(a(1):-true,1)']);
+	    var em = prolog.request('prune(' + id.split(',')[0] + ')');
+	    assert.deepEqual(yield em.on('success', $S.resumeRaw()), ['pruned']);
+	    // Now a query on that chunk should raise an error
+	    em = prolog.request('on((' + id + '), logicQuery(X, a(X), 1))');
+	    var err = yield em.on('error', $S.resumeRaw());
+	    assert.equal(err[0].message, ['error(chunkDoesNotExist(' + id.split(',')[0] + '))']);
+	}));
+    });
 });
