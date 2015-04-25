@@ -34,7 +34,7 @@ describe('PeerLocator', function(){
 	    var l3 = new PeerLocator(4052, 'http://localhost:4050');
 	    yield l3.run($R());
 	    assert.equal(l1.knownPeers().length, 3);
-	    //assert.equal(l2.knownPeers().length, 3);
+	    assert.equal(l2.knownPeers().length, 3);
 	    assert.equal(l3.knownPeers().length, 3);
 	}));
 
