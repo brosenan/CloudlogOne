@@ -15,16 +15,32 @@ main:cloudlog1 :-
 main:cloudlog1(T1) :-
 	read(Cmd),
 	catch(
-	  if(main:handleCmd(Cmd, T1, T2, Continue),
-	    true,
-	  %else
-	    (write('! '), main:mywrite(unknownCommand(Cmd)), nl)),
-	% catch
-	  Err, (write('! '), main:mywrite(error(Err)), nl)),
+	(
+	    if(main:handleCmd(Cmd, T1, T2, Continue),
+	    (
+		true
+	    ), % else
+	    (
+		T2 = T1,
+		write('! '), 
+		main:mywrite(unknownCommand(Cmd)), 
+		nl
+	    ))
+	),
+	Err,
+	(
+	    T2 = T1,
+	    write('! '), 
+	    main:mywrite(error(Err)), 
+	    nl
+	)),
 	if(Continue = yes,
-	  main:cloudlog1(T2),
-	% else
-	  true).
+	(
+	    main:cloudlog1(T2)
+	), % else
+	(
+	    true
+	)).
 
 main:handleCmd(heartbeat, T, T, yes) :-
 	write('. alive'), nl.
@@ -102,6 +118,12 @@ main:handleCmd(patch(Hc,Hv1,Patch), C1, C2, yes) :-
 main:handleCmd(prune(Hc), C1, C2, yes) :-
 	rb_delete(C1, Hc, C2),
 	write('. pruned'),
+	nl.
+
+main:handleCmd(list, C, C, yes) :-
+	findall(Key, rb_in(Key, _, C), Keys),
+	write('. '),
+	main:mywrite(Keys),
 	nl.
 
 main:writeHash(H1, H2) :-
