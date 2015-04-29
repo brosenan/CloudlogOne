@@ -48,28 +48,22 @@ module.exports = function(options, bucketStore) {
 	this._prolog.request('set_max_depth(' + options.maxDepth + ')');
     }
     this._chunkStore = new ChunkStore(this._prolog, null, bucketStore, options);
-    this._app = this._locator.app();
-    this._app.post('/new', function(req, res) {
-	$S.run(function*() {
-	    var id = req.body.id;
-	    var chunk = yield self._chunkStore.getChunk(id, $R());
-	    var ver = yield chunk.init(req.body.patch, $R());
-	    res.json({ver: ver});
-	});
-    });
-    this._app.post('/apply', function(req, res) {
-	$S.run(function*() {
-	    var ver = req.body.ver;
-	    var chunk = yield self._chunkStore.getChunk(ver, $R());
-	    var results = [];
-	    chunk.setUpstream(new UpstreamClient(self, results));
-	    ver = yield chunk.apply(ver, 
-				       req.body.patch, 
-				       function(r) { results.push(r); },
-				       $R());
-	    res.json({ver: ver, res: results});
-	});
-    });
+    this._locator.service('/new', $S.async(function*(input) {
+	var chunk = yield self._chunkStore.getChunk(input.id, $R());
+	var ver = yield chunk.init(input.patch, $R());
+	return {ver: ver};
+    }));
+    this._locator.service('/apply', $S.async(function*(input) {
+	var ver = input.ver;
+	var chunk = yield self._chunkStore.getChunk(ver, $R());
+	var results = [];
+	chunk.setUpstream(new UpstreamClient(self, results));
+	ver = yield chunk.apply(ver, 
+				input.patch, 
+				function(r) { results.push(r); },
+				$R());
+	return {ver: ver, res: results};
+    }));
 };
 
 var clazz = module.exports.prototype;
