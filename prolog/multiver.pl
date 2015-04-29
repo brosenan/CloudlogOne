@@ -16,6 +16,13 @@ multiver:query(Q, M, H, V) :-
 	rb_lookup(H, T, M),
 	multiver:query(Q, T, V).
 
+multiver:query([Q|_], T, V) :-
+	multiver:query(Q, T, V).
+
+multiver:query([_|Q], T, V) :-
+	multiver:query(Q, T, V).
+
+
 multiver:patch(P, M1, H1, H2, M2) :-
 	rb_lookup(H1, T1, M1),
 	multiver:patch(P, T1, T2),
@@ -26,3 +33,4 @@ multiver:patch([], T, T).
 multiver:patch([P | Ps], T1, T3) :-
 	multiver:patch(P, T1, T2),
 	multiver:patch(Ps, T2, T3).
+
