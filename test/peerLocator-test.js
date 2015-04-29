@@ -60,7 +60,69 @@ describe('PeerLocator', function(){
 	    }
 	    assert(count > 0, count + ' > 0');
 	    assert(count < 100, count + ' < 100');
+	    yield l1.stop($R());
+	    yield l2.stop($R());
 	}));
     });
+    describe('.service(path, handler(input, cb(err, output)))', function(){
+	it('should register a service to the given path', $T(function*(){
+	    var locator = new PeerLocator(4050);
+	    locator.service('/test', $S.async(function*(input) {
+		return {value: input.value + 2};
+	    }));
+	    yield locator.run($R());
+	    
+	    var opts = {
+		method: 'POST',
+		uri: 'http://localhost:4050/test',
+		json: true,
+		body: {value: 3},
+	    };
+	    var resp = yield request(opts, $S.resumeRaw());
+	    assert.ifError(resp[0]);
+	    assert.equal(resp[1].statusCode, 200);
+	    assert.equal(resp[2].value, 5);
+	    yield locator.stop($R());
+	}));
+	it('should handle errors by responding status 500', $T(function*(){
+	    var locator = new PeerLocator(4050);
+	    locator.service('/test', $S.async(function*(input) {
+		throw Error('Foo bar');
+	    }));
+	    yield locator.run($R());
+	    
+	    var opts = {
+		method: 'POST',
+		uri: 'http://localhost:4050/test',
+		json: true,
+		body: {},
+	    };
+	    var resp = yield request(opts, $S.resumeRaw());
+	    assert.ifError(resp[0]);
+	    assert.equal(resp[1].statusCode, 500);
+	    assert.equal(resp[2], 'Foo bar');
+	    yield locator.stop($R());
+	}));
+    });
+    describe('.request(key, path, input, cb(err, output))', function(){
+	it('should call a service', $T(function*(){
+	    var handler = $S.async(function*(input) {
+		return {value: input.value * 2};
+	    });
+	    var master = 'http://localhost:4050';
+	    var l1 = new PeerLocator(4050, null, 100);
+	    l1.service('/foo', handler);
+	    yield l1.run($R());
 
+	    var l2 = new PeerLocator(4051, master, 100);
+	    l2.service('/foo', handler);
+	    yield l2.run($R());
+
+	    var res = yield l1.request('abc', '/foo', {value: 3}, $R());
+	    assert.equal(res.value, 6);
+
+	    yield l1.stop($R());
+	    yield l2.stop($R());
+	}));
+    });
 });

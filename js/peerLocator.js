@@ -4,6 +4,7 @@ var bodyParser = require('body-parser')
 var request = require('request');
 var $S = require('suspend'), $R = $S.resume;
 var NodeHash = require('./nodehash.js');
+var assert = require('assert');
 
 var SUFFIX = '/_peerloc';
 
@@ -99,4 +100,29 @@ clazz._contactPeer = $S.async(function*(peer) {
 
 clazz.stop = $S.async(function*() {
     yield this._server.close($R());
+});
+
+clazz.service = function(path, handler) {
+    this._app.post(path, function(req, res) {
+	handler(req.body, function(err, output) {
+	    if(err) {
+		res.status(500).send(err.message);
+	    } else {
+		res.json(output);
+	    }
+	});
+    });
+};
+
+clazz.request = $S.async(function*(key, path, input) {
+    var opts = {
+	method: 'POST',
+	uri: 'http://localhost:4050' + path,
+	json: true,
+	body: input,
+    };
+    var resp = yield request(opts, $S.resumeRaw());
+    assert.ifError(resp[0]);
+    assert.equal(resp[1].statusCode, 200);
+    return resp[2];
 });
