@@ -58,16 +58,17 @@ describe('LogicNode', function(){
 	afterEach($T(function*(){
 	    yield node.stop($R());
 	}));
-	describe('POST /new/:id', function(){
+	describe('POST /new', function(){
 	    it('should accept a patch and create a new chunk with the given ID', $T(function*(){
 		var postOpts = {
 		    method: 'POST',
-		    uri: 'http://localhost:12001/new/foo',
+		    uri: 'http://localhost:12001/new',
 		    json: true,
-		    body: ['add_v((a(3):-true), 1)'],
+		    body: {id: 'foo', patches: ['add_v((a(3):-true), 1)']},
 		};
 		var resp = yield request(postOpts, $S.resumeRaw());
 		assert.ifError(resp[0]);
+		assert.equal(resp[1].statusCode, 200);
 		// Should return the new version ID
 		assert.equal(typeof resp[2].ver, 'string');
 		// The internal and external IDs should match
@@ -78,9 +79,9 @@ describe('LogicNode', function(){
 	var initChunk = $S.async(function*() {
 	    var postOpts = {
 		method: 'POST',
-		uri: 'http://localhost:12001/new/foo',
+		uri: 'http://localhost:12001/new',
 		json: true,
-		body: ['add_v((a(3):-true), 1)'],
+		body: {id: 'foo', patches: ['add_v((a(3):-true), 1)']},
 	    };
 	    var resp = yield request(postOpts, $S.resumeRaw());
 	    assert.ifError(resp[0]);
@@ -89,7 +90,19 @@ describe('LogicNode', function(){
 	describe('POST /apply', function(){
 	    it('should apply the given query on the given version ID', $T(function*(){
 		var ver = yield initChunk($R());
+		// Apply a patch
 		var postOpts = {
+		    method: 'POST',
+		    uri: 'http://localhost:12001/apply',
+		    json: true,
+		    body: {ver: ver, patches: ['add_v((a(4):-true),2)']},
+		};
+		var resp = yield request(postOpts, $S.resumeRaw());
+		assert.ifError(resp[0]);
+		assert.equal(resp[1].statusCode, 200);
+		ver = resp[2].ver;
+		// Perform a query
+		postOpts = {
 		    method: 'POST',
 		    uri: 'http://localhost:12001/apply',
 		    json: true,
@@ -99,6 +112,7 @@ describe('LogicNode', function(){
 		assert.ifError(resp[0]);
 		assert.equal(resp[1].statusCode, 200);
 		assert.equal(resp[2].res[0], 'res(3,1)');
+		assert.equal(resp[2].res[1], 'res(4,2)');
 	    }));
 	});
     });

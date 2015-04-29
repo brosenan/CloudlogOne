@@ -10,12 +10,12 @@ module.exports = function(options, bucketStore) {
     this._locator = new PeerLocator(options.port, options.peer, options.clusterSize);
     this._chunkStore = new ChunkStore(new PrologInterface('/tmp/logicNode.log'), null, bucketStore, options);
     this._app = this._locator.app();
-    this._app.post('/new/*', function(req, res) {
+    this._app.post('/new', function(req, res) {
 	$S.run(function*() {
-	    var id = req.path.match(/\/new\/(.*)/)[1];
+	    var id = req.body.id;
 	    var chunk = yield self._chunkStore.getChunk(id, $R());
-	    var id = yield chunk.init('[' + req.body.join(',') + ']', $R());
-	    res.json({ver: id});
+	    var ver = yield chunk.init('[' + req.body.patches.join(',') + ']', $R());
+	    res.json({ver: ver});
 	});
     });
     this._app.post('/apply', function(req, res) {
@@ -23,7 +23,7 @@ module.exports = function(options, bucketStore) {
 	    var ver = req.body.ver;
 	    var chunk = yield self._chunkStore.getChunk(ver, $R());
 	    var results = [];
-	    var id = yield chunk.apply(ver, 
+	    ver = yield chunk.apply(ver, 
 				       '[' + req.body.patches.join(',') + ']', 
 				       function(r) { results.push(r); },
 				       $R());
