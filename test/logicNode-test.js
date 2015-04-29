@@ -44,6 +44,22 @@ describe('LogicNode', function(){
 		assert.equal(node._locator._nodehash.size, 333);
 	    });
 	});
+	describe('capacity', function(){
+	    it('should specify the maximum number of chunks to be stored in this node at any given time', function(){
+		var node = new LogicNode({capacity: 333}, bucketStore());
+		assert.equal(node._chunkStore._cache.max, 333);
+	    });
+	});
+	describe('maxDepth', function(){
+	    it('should specify the maximum depth of each chunk', $T(function*(){
+		var node = new LogicNode({maxDepth: 444}, bucketStore());
+		var em = node._chunkStore._prolog.request('set_max_depth(3)');
+		var res = yield em.on('success', $S.resumeRaw());
+		assert.equal(res[0], 'was: 444');
+	    }));
+
+	});
+
     });
     describe('.start(cb(err))', function(){
     });

@@ -8,7 +8,11 @@ var $S = require('suspend'), $R = $S.resume;
 module.exports = function(options, bucketStore) {
     var self = this;
     this._locator = new PeerLocator(options.port, options.peer, options.clusterSize);
-    this._chunkStore = new ChunkStore(new PrologInterface('/tmp/logicNode.log'), null, bucketStore, options);
+    var prolog = new PrologInterface('/tmp/logicNode.log');
+    if(options.maxDepth) {
+	prolog.request('set_max_depth(' + options.maxDepth + ')');
+    }
+    this._chunkStore = new ChunkStore(prolog, null, bucketStore, options);
     this._app = this._locator.app();
     this._app.post('/new', function(req, res) {
 	$S.run(function*() {
