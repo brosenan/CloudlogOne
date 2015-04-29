@@ -165,8 +165,20 @@ describe('LogicNode', function(){
 		v = yield applyPatch(12002, v, 'add_v((a(3):-true),1)', $R());
 		var res = yield runQuery(12002, v, 'logicQuery(X, a(X), 1)', $R());
 		assert.equal(res.length, 3);
+		yield n1.stop($R());
+		yield n2.stop($R());
 	    }));
-
+	    it('should use local chunks if peers are  not available', $T(function*(){
+		var bs = bucketStore();
+		var n1 = new LogicNode({port: 12002, maxDepth: 1}, bs);
+		yield n1.start($R());
+		var v = yield initChunk(12002, 'add_v((a(2):-true),1)', $R());
+		v = yield applyPatch(12002, v, 'add_v((a(1):-true),1)', $R());
+		v = yield applyPatch(12002, v, 'add_v((a(3):-true),1)', $R());
+		var res = yield runQuery(12002, v, 'logicQuery(X, a(X), 1)', $R());
+		assert.equal(res.length, 3);
+		yield n1.stop($R());
+	    }));
 	});
     });
 });

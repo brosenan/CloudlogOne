@@ -10,7 +10,12 @@ var request = require('request');
 function UpstreamClient(node, results) {
     this.apply = $S.async(function*(v, patch) {
 	var split = v.split(',');
-	var peer = node._locator.getServerFor(split[0]);
+	var peer;
+	if(node._locator.knownPeers().length > 0) {
+	    peer = node._locator.getServerFor(split[0]);
+	} else {
+	    peer = 'http://localhost:' + node._port;
+	}
 	var postOpts = {
 	    method: 'POST',
 	    json: true,
@@ -36,12 +41,13 @@ function UpstreamClient(node, results) {
 
 module.exports = function(options, bucketStore) {
     var self = this;
-    this._locator = new PeerLocator(options.port, options.peer, options.clusterSize);
-    var prolog = new PrologInterface('/tmp/logicNode.' + options.port + '.log');
+    this._port = options.port;
+    this._locator = new PeerLocator(this._port, options.peer, options.clusterSize);
+    this._prolog = new PrologInterface('/tmp/logicNode.' + options.port + '.log');
     if(options.maxDepth) {
-	prolog.request('set_max_depth(' + options.maxDepth + ')');
+	this._prolog.request('set_max_depth(' + options.maxDepth + ')');
     }
-    this._chunkStore = new ChunkStore(prolog, null, bucketStore, options);
+    this._chunkStore = new ChunkStore(this._prolog, null, bucketStore, options);
     this._app = this._locator.app();
     this._app.post('/new', function(req, res) {
 	$S.run(function*() {
