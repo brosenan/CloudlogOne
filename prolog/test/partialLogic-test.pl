@@ -43,13 +43,13 @@ test(rawAxiom_returns_placeholder, [R =@= (b(_), ph(myPlaceholder))]) :-
 % [query] add_v(+Axiom, +Value): Performs bottom-up evaluation of rules as a result of the add_v patch with the same Axiom and Value.  
 %                                If Axiom is a rule, it finds matching facts, and vice versa.  It returns all resulting axioms.
 %                                The associated value is the multiplication of the values of the fact and the rule
-test(add_m_rule, [R == (bar(abc), 6)]) :-
+test(add_m_rule, [R == add(bar(abc), 6)]) :-
 	hashedTree:empty(T0),
 	multiver:patch(add_m(rule(foo(X), true, bar(X)), 2), T0, T1),
 	multiver:query(add_v(foo(abc), 3), T1, R).
 
 % In the following case the fact needs to be more general than the rule.
-test(add_m_fact, [R == (bar, 15)]) :-
+test(add_m_fact, [R == add(bar, 15)]) :-
 	hashedTree:empty(T0),
 	multiver:patch(add_m(foo(_), 5), T0, T1),
 	multiver:query(add_v(rule(foo(abc), true, bar), 3), T1, R).
@@ -61,18 +61,18 @@ test(add_m_ignores_placeholder, [T1 == T2]) :-
 	multiver:patch(add_m(rule(b, true, c), 1), T1, T2).
 
 % [query] add_m(+Axiom, +Value): Perform bottom-up evaluation as a result of adding a hook for matching axioms.  It scans the tree for matches that already exist.
-test(add_v_fact, [R == (bar(abc), 6)]) :-
+test(add_v_fact, [R == add(bar(abc), 6)]) :-
 	hashedTree:empty(T0),
 	multiver:patch(add_v(foo(abc), 2), T0, T1),
 	once(multiver:query(add_m(rule(foo(X), true, bar(X)), 3), T1, R)).
 
-test(add_v_rule, [R == (bar, 6)]) :-
+test(add_v_rule, [R == add(bar, 6)]) :-
 	hashedTree:empty(T0),
 	multiver:patch(add_v(rule(foo(abc), true, bar), 2), T0, T1),
 	once(multiver:query(add_m(foo(_), 3), T1, R)).
 
 % The add_m query returns placeholder results
-test(add_m_returns_placeholder, [R =@= (_, ph(myPlaceholder))]) :-
+test(add_m_returns_placeholder, [R =@= add(_,ph(myPlaceholder))]) :-
 	hashedTree:empty(T0),
 	multiver:patch(h_putPlaceholder(a, myPlaceholder), T0, T1),
 	multiver:query(add_m(rule(a, true, b), 1), T1, R).

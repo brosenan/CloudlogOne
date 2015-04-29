@@ -135,7 +135,7 @@ mywrite(Term) :-
 	write_term(Term, [quoted(true)]).
 
 main:hasPlaceholder(ph(PH), PH).
-main:hasPlaceholder((_, ph(PH)), PH).
+main:hasPlaceholder(add(_, ph(PH)), PH).
 
 main:writeUpstream(PH, Op) :-
 	if(main:getKey(Op, Key),
