@@ -54,14 +54,16 @@ clazz.apply = function(v1, patch, downCB, cb) {
 	    let patch;
 	    if(patchesOut[i].v.substring(patchesOut[i].v.length-4) === ",'_'") {
 		patch = 'h_putPlaceholder(' + patchesOut[i].k + ',(' + newIDs[i] + '))';
-	    } else {
+	    } else if(patchesOut[i].v !== newIDs[i]) {
 		patch = 'h_updatePlaceholder(' + patchesOut[i].k + ',(' + patchesOut[i].v + '),(' + newIDs[i] + '))';
 	    }
-	    let em = self._request('on((' + v2 + '), ' + patch + ')', fnf);
-	    em.on('error', function(err) {
-		cb(err);
-	    });
-	    v2 = (yield em.on('success', $S.resumeRaw()))[0];
+	    if(patch) {
+		let em = self._request('on((' + v2 + '), ' + patch + ')', fnf);
+		em.on('error', function(err) {
+		    cb(err);
+		});
+		v2 = (yield em.on('success', $S.resumeRaw()))[0];
+	    }
 	}
 	yield fnf.join($R());
 	return v2;
@@ -100,3 +102,6 @@ clazz.open = function(id, cb) {
     }, cb);
 };
 
+clazz.setUpstream = function(upstream) {
+    this._upstream = upstream;
+};

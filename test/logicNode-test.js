@@ -57,9 +57,7 @@ describe('LogicNode', function(){
 		var res = yield em.on('success', $S.resumeRaw());
 		assert.equal(res[0], 'was: 444');
 	    }));
-
 	});
-
     });
     describe('.start(cb(err))', function(){
     });
@@ -80,7 +78,7 @@ describe('LogicNode', function(){
 		    method: 'POST',
 		    uri: 'http://localhost:12001/new',
 		    json: true,
-		    body: {id: 'foo', patches: ['add_v((a(3):-true), 1)']},
+		    body: {id: 'foo', patch: 'add_v((a(3):-true), 1)'},
 		};
 		var resp = yield request(postOpts, $S.resumeRaw());
 		assert.ifError(resp[0]);
@@ -92,12 +90,14 @@ describe('LogicNode', function(){
 		assert.equal(m[0], m[1]);
 	    }));
 	});
-	var initChunk = $S.async(function*() {
+	var initChunk = $S.async(function*(port, patch) {
+	    port = port || 12001;
+	    patch = patch || 'add_v((a(3):-true), 1)';
 	    var postOpts = {
 		method: 'POST',
-		uri: 'http://localhost:12001/new',
+		uri: 'http://localhost:' + port + '/new',
 		json: true,
-		body: {id: 'foo', patches: ['add_v((a(3):-true), 1)']},
+		body: {id: 'foo', patch: patch},
 	    };
 	    var resp = yield request(postOpts, $S.resumeRaw());
 	    assert.ifError(resp[0]);
@@ -111,7 +111,7 @@ describe('LogicNode', function(){
 		    method: 'POST',
 		    uri: 'http://localhost:12001/apply',
 		    json: true,
-		    body: {ver: ver, patches: ['add_v((a(4):-true),2)']},
+		    body: {ver: ver, patch: 'add_v((a(4):-true),2)'},
 		};
 		var resp = yield request(postOpts, $S.resumeRaw());
 		assert.ifError(resp[0]);
@@ -122,7 +122,7 @@ describe('LogicNode', function(){
 		    method: 'POST',
 		    uri: 'http://localhost:12001/apply',
 		    json: true,
-		    body: {ver: ver, patches: ['logicQuery(X, a(X), 1)']},
+		    body: {ver: ver, patch: 'logicQuery(X, a(X), 1)'},
 		};
 		var resp = yield request(postOpts, $S.resumeRaw());
 		assert.ifError(resp[0]);
@@ -130,6 +130,43 @@ describe('LogicNode', function(){
 		assert.equal(resp[2].res[0], 'res(3,1)');
 		assert.equal(resp[2].res[1], 'res(4,2)');
 	    }));
+	    var applyPatch = $S.async(function*(port, ver, patch) {
+		var postOpts = {
+		    method: 'POST',
+		    uri: 'http://localhost:' + port + '/apply',
+		    json: true,
+		    body: {ver: ver, patch: patch},
+		};
+		var resp = yield request(postOpts, $S.resumeRaw());
+		assert.ifError(resp[0]);
+		assert.equal(resp[1].statusCode, 200);
+		return resp[2].ver;
+	    });
+	    var runQuery = $S.async(function*(port, ver, q) {
+		var postOpts = {
+		    method: 'POST',
+		    uri: 'http://localhost:' + port + '/apply',
+		    json: true,
+		    body: {ver: ver, patch: q},
+		};
+		var resp = yield request(postOpts, $S.resumeRaw());
+		assert.ifError(resp[0]);
+		assert.equal(resp[1].statusCode, 200);
+		return resp[2].res;
+	    });
+	    it('should forward requests to other nodes if needed', $T(function*(){
+		var bs = bucketStore();
+		var n1 = new LogicNode({port: 12002, maxDepth: 1}, bs);
+		yield n1.start($R());
+		var n2 = new LogicNode({port: 12003, maxDepth: 1, peer: 'http://localhost:12002'}, bs);
+		yield n2.start($R());
+		var v = yield initChunk(12002, 'add_v((a(2):-true),1)', $R());
+		v = yield applyPatch(12002, v, 'add_v((a(1):-true),1)', $R());
+		v = yield applyPatch(12002, v, 'add_v((a(3):-true),1)', $R());
+		var res = yield runQuery(12002, v, 'logicQuery(X, a(X), 1)', $R());
+		assert.equal(res.length, 3);
+	    }));
+
 	});
     });
 });
