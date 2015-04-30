@@ -126,6 +126,12 @@ main:handleCmd(list, C, C, yes) :-
 	main:mywrite(Keys),
 	nl.
 
+main:handleCmd(calcInitialHash(Patch), C, C, yes) :-
+	main:calcInitialHash(Patch, Hash),
+	write('. '),
+	main:mywrite(Hash),
+	nl.
+
 main:writeHash(H1, H2) :-
 	write('. '),
 	mywrite((H1,H2)),

@@ -51,6 +51,14 @@ module.exports = function(options, bucketStore) {
 				$R());
 	return {ver: ver, res: results};
     }));
+    this._locator.service('/', $S.async(function*(input) {
+	var em = self._prolog.request('calcInitialHash([' + input.patches.join(',') + '])');
+	var ver = yield function(cb) {
+	    em.on('error', cb);
+	    em.on('success', function(ver) { cb(undefined, ver); });
+	}($R());
+	return {ver: ver};
+    }));
 };
 
 var clazz = module.exports.prototype;

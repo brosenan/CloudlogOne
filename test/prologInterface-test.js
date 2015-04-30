@@ -222,4 +222,12 @@ describe('PrologInterface', function(){
 	    assert.equal(err[0].message, ['error(chunkDoesNotExist(' + id.split(',')[0] + '))']);
 	}));
     });
+    describe('calcInitialHash/1', function(){
+	it('should return the hash associated with the given patch', $T(function*(){
+	    var prolog = new PrologInterface();
+	    var em = prolog.request("calcInitialHash([add_v((foo(bar) :- true), 1)])");
+	    var id = (yield em.on('success', $S.resumeRaw()))[0];
+	    assert.equal(id, "'MeSoY/+0W5oN6fjpbqUds/5AjWo='");
+	}));
+    });
 });
