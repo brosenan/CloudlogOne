@@ -5,37 +5,24 @@ var ChunkStore = require('./chunkStore.js');
 var PrologInterface = require('./prologInterface.js');
 var $S = require('suspend'), $R = $S.resume;
 var assert = require('assert');
-var request = require('request');
 
 function UpstreamClient(node, results) {
     this.apply = $S.async(function*(v, patch) {
 	var split = v.split(',');
-	var peer;
-	if(node._locator.knownPeers().length > 0) {
-	    peer = node._locator.getServerFor(split[0]);
-	} else {
-	    peer = 'http://localhost:' + node._port;
-	}
-	var postOpts = {
-	    method: 'POST',
-	    json: true,
-	};
+	var resp;
 	if(split[1] === "'_'") {
-	    postOpts.uri = peer + '/new';
-	    postOpts.body = {id: split[0], patch: patch};
+	    resp = yield node._locator.request(split[0], '/new', {id: split[0], 
+								  patch: patch}, $R());
 	} else {
-	    postOpts.uri = peer + '/apply';
-	    postOpts.body = {ver: v, patch: patch};
+	    resp = yield node._locator.request(split[0], '/apply', {ver: v, 
+								    patch: patch}, $R());
 	}
-	var resp = yield request(postOpts, $S.resumeRaw());
-	assert.ifError(resp[0]);
-	assert.equal(resp[1].statusCode, 200);
-	if(resp[2].res) {
-	    resp[2].res.forEach(function(r) {
+	if(resp.res) {
+	    resp.res.forEach(function(r) {
 		results.push(r);
 	    });
 	}
-	return resp[2].ver;
+	return resp.ver;
     });
 }
 
