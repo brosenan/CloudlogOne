@@ -139,7 +139,9 @@ describe('LogicNode', function(){
 		};
 		var resp = yield request(postOpts, $S.resumeRaw());
 		assert.ifError(resp[0]);
-		assert.equal(resp[1].statusCode, 200);
+		if(resp[1].statusCode !== 200) {
+		    throw Error('Bad response: ' + resp[2]);
+		}
 		return resp[2].ver;
 	    });
 	    var runQuery = $S.async(function*(port, ver, q) {

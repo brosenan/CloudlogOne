@@ -109,12 +109,12 @@ describe('PeerLocator', function(){
 	    var handler = $S.async(function*(input) {
 		return {value: input.value * 2};
 	    });
-	    var master = 'http://localhost:4050';
-	    var l1 = new PeerLocator(4050, null, 100);
+	    var master = 'http://localhost:4051';
+	    var l1 = new PeerLocator(4051, null, 100);
 	    l1.service('/foo', handler);
 	    yield l1.run($R());
 
-	    var l2 = new PeerLocator(4051, master, 100);
+	    var l2 = new PeerLocator(4052, master, 100);
 	    l2.service('/foo', handler);
 	    yield l2.run($R());
 
@@ -124,5 +124,19 @@ describe('PeerLocator', function(){
 	    yield l1.stop($R());
 	    yield l2.stop($R());
 	}));
+	it('should call the handler directly in case no peers are registered', $T(function*(){
+	    var handler = $S.async(function*(input) {
+		return {value: input.value * 3};
+	    });
+	    var l1 = new PeerLocator(4055, null, 100);
+	    l1.service('/foo', handler);
+	    yield l1.run($R());
+
+	    var res = yield l1.request('abc', '/foo', {value: 3}, $R());
+	    assert.equal(res.value, 9);
+
+	    yield l1.stop($R());
+	}));
+
     });
 });

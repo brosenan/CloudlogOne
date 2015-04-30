@@ -27,6 +27,7 @@ module.exports = function(port, master, size) {
 	res.send(self._myPeers());
     });
     this._server = null;
+    this._handlers = {};
 };
 var clazz = module.exports.prototype;
 
@@ -103,6 +104,7 @@ clazz.stop = $S.async(function*() {
 });
 
 clazz.service = function(path, handler) {
+    this._handlers[path] = handler;
     this._app.post(path, function(req, res) {
 	handler(req.body, function(err, output) {
 	    if(err) {
@@ -115,9 +117,12 @@ clazz.service = function(path, handler) {
 };
 
 clazz.request = $S.async(function*(key, path, input) {
+    if(this.knownPeers().length == 0) {
+	return yield this._handlers[path](input, $R());
+    }
     var opts = {
 	method: 'POST',
-	uri: 'http://localhost:4050' + path,
+	uri: this._nodehash.getServerFor(key) + path,
 	json: true,
 	body: input,
     };
