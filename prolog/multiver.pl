@@ -16,11 +16,11 @@ multiver:query(Q, M, H, V) :-
 	rb_lookup(H, T, M),
 	multiver:query(Q, T, V).
 
-%multiver:query([Q|_], T, V) :-
-%	multiver:query(Q, T, V).
-%
-%multiver:query([_|Q], T, V) :-
-%	multiver:query(Q, T, V).
+multiver:query([Q|_], T, V) :-
+	multiver:query(Q, T, V).
+
+multiver:query([_|Q], T, V) :-
+	multiver:query(Q, T, V).
 
 
 multiver:patch(P, M1, H1, H2, M2) :-

@@ -72,26 +72,7 @@ main:handleCmd(on((Hc,Hv1), Op), C1, C2, yes) :-
 	    main:writeUpstream(PH, Op),
 	  % else
 	    (write(': '), main:mywrite(R), nl))),
-	catch(
-	  catch(
-	    (multiver:patch(Op, M1, Hv1, Hv2, M2),
-	    if(Hv1 \= Hv2,
-	    (
-		main:reportPersist(Hc, patch(Hc, Hv1, Op))
-	    ), % else
-	    (
-		true
-	    ))),
-	  % catch
-	    treap_error(depth_limit_exceeded(Hooks)),
-	    (main:convertHooks(Hooks, HookPatches),
-	    main:calcInitialHash([Op|HookPatches], InitialHash),
-	    writeUpstream((InitialHash, '_'), [Op|HookPatches]), 
-	    (Hv2, M2) = (Hv1, M1))),
-	% catch
-	  forwardToPlaceholder(PH),
-	  (main:writeUpstream(PH, Op),
-	  (Hv2, M2) = (Hv1, M1))),
+	main:applyPatches(Op, Hc, M1, Hv1, Hv2, M2),
 	rb_insert(C1, Hc, M2, C2),
 	writeHash(Hc, Hv2).
 
@@ -181,3 +162,37 @@ main:reportPersist(Hc, Op) :-
 	write(' '),
 	main:mywrite(Op),
 	nl.
+
+main:applyPatches([], _, M, Hv, Hv, M) :- !. %%%
+main:applyPatches([Op | Ops], Hc, M1, Hv1, Hv3, M3) :- !, %%%
+	main:applyPatches(Op, Hc, M1, Hv1, Hv2, M2),
+	main:applyPatches(Ops, Hc, M2, Hv2, Hv3, M3).
+
+main:applyPatches(Op, Hc, M1, Hv1, Hv2, M2) :-
+	catch(
+	(
+	    catch(
+	    (
+		multiver:patch(Op, M1, Hv1, Hv2, M2),
+		if(Hv1 \= Hv2,
+		(
+		    main:reportPersist(Hc, patch(Hc, Hv1, Op))
+		), % else
+		(
+		    true
+		))
+	    ), % catch
+	    treap_error(depth_limit_exceeded(Hooks)),
+	    (
+		main:convertHooks(Hooks, HookPatches),
+		main:calcInitialHash([Op|HookPatches], InitialHash),
+		writeUpstream((InitialHash, '_'), [Op|HookPatches]), 
+		(Hv2, M2) = (Hv1, M1)
+	    ))
+	), % catch
+	forwardToPlaceholder(PH),
+	(
+	    main:writeUpstream(PH, Op),
+	    (Hv2, M2) = (Hv1, M1)
+	)).
+

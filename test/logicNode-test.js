@@ -181,16 +181,16 @@ describe('LogicNode', function(){
 		assert.equal(res.length, 3);
 		yield n1.stop($R());
 	    }));
-	    it('should allow multiple updates to the same placeholder', $T(function*(){
+	    it('should handle patch lists correctly', $T(function*(){
 		var bs = bucketStore();
 		var n1 = new LogicNode({port: 12002, maxDepth: 2}, bs);
 		yield n1.start($R());
-		var v = yield initChunk(12002, '[add_v((a(1):-true),1),add_v((a(2):-true),1)]', $R());
-		v = yield applyPatch(12002, v, 'add_v((a(3):-true),1)', $R());
+		var v = yield initChunk(12002, '[add_v((a(1,1):-true),1),add_v((a(2,2):-true),1)]', $R());
+		v = yield applyPatch(12002, v, 'add_v((a(3,3):-true),1)', $R());
 		// Now a placeholder should be in place for higher values
-		v = yield applyPatch(12002, v, '[add_v((a(4):-true),1), add_v((a(5):-true),1)]', $R());
-		var res = yield runQuery(12002, v, 'logicQuery(X, a(X), 1)', $R());
-		assert.equal(res.length, 5);
+		v = yield applyPatch(12002, v, '[add_v((a(4,4):-true),1), add_v((a(0,0):-true),1)]', $R());
+		var res = yield runQuery(12002, v, 'logicQuery(X, a(0,X), 1)', $R());
+		assert.equal(res[0], 'res(0,1)');
 		yield n1.stop($R());
 	    }));
 	});
