@@ -73,7 +73,7 @@ describe('Chunk', function(){
 	    // The first argument should be the ID of the new chunk
 	    assert.equal(upstream.apply.firstCall.args[0], firstHalf + ',' + firstHalf);
 	    // The second argument should be the patch to be forwarded
-	    assert.equal(upstream.apply.firstCall.args[1], 'add_v((bar(boo):-true),1)');
+	    assert.equal(upstream.apply.firstCall.args[1], '[add_v((bar(boo):-true),1)]');
 	    // The third argument is a callback.  Calling it will replace the placeholder
 	    upstream.apply.firstCall.args[2](undefined, firstHalf + ',xxx');
 	    newID = (yield em.on('success', $S.resumeRaw()))[0];

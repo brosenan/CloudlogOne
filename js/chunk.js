@@ -31,13 +31,17 @@ clazz.init = function(patch, cb) {
 
 clazz.apply = function(v1, patch, downCB, cb) {
     var self = this;
-    var patchesIn = [];
-    var patchesOut = [];
+    var upstream = {};
+    var upstreamKeys = {};
     var fnf = new FireAndForget();
     $S.run(function*() {
 	var em1 = self._request('on((' + v1 + '), ' + patch + ')', fnf);
 	em1.on('upstream', function(v, k, p) {
-	    patchesOut.push({v: v, k: k, p: p});
+	    if(!(v in upstream)) {
+		upstream[v] = [];
+	    }
+	    upstream[v].push(p);
+	    upstreamKeys[v] = k;
 	});
 	em1.on('downstream', function(res) {
 	    downCB(res);
@@ -46,16 +50,17 @@ clazz.apply = function(v1, patch, downCB, cb) {
 	    cb(err);
 	});
 	var v2 = (yield em1.on('success', $S.resumeRaw()))[0];
-	patchesOut.forEach(function(pair) {
-	    self._upstream.apply(pair.v, pair.p, $S.fork());
+	var placeholders = Object.keys(upstream);
+	placeholders.forEach(function(v) {
+	    self._upstream.apply(v, '[' + upstream[v].join(',') + ']', $S.fork());
 	});
 	var newIDs = yield $S.join();
 	for(let i = 0; i < newIDs.length; i++) {
 	    let patch;
-	    if(patchesOut[i].v.substring(patchesOut[i].v.length-4) === ",'_'") {
-		patch = 'h_putPlaceholder(' + patchesOut[i].k + ',(' + newIDs[i] + '))';
-	    } else if(patchesOut[i].v !== newIDs[i]) {
-		patch = 'h_updatePlaceholder(' + patchesOut[i].k + ',(' + patchesOut[i].v + '),(' + newIDs[i] + '))';
+	    if(placeholders[i].substring(placeholders[i].length-4) === ",'_'") {
+		patch = 'h_putPlaceholder(' + upstreamKeys[placeholders[i]] + ',(' + newIDs[i] + '))';
+	    } else if(placeholders[i] !== newIDs[i]) {
+		patch = 'h_updatePlaceholder(' + upstreamKeys[placeholders[i]] + ',(' + placeholders[i] + '),(' + newIDs[i] + '))';
 	    }
 	    if(patch) {
 		let em = self._request('on((' + v2 + '), ' + patch + ')', fnf);
