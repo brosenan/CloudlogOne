@@ -219,7 +219,7 @@ test(update_placeholder, [true(R =@= ph(placeholder2))]) :-
 	treap:updatePlaceholder(T2, a(3, X), placeholder1, placeholder2, T3),
 	treap:get(T3, a(3, X), R).
 
-test(update_placeholder_fails_on_mismatch, [fail]) :-
+test(update_placeholder_fails_on_mismatch, [throws(treap_error(unexpected_placeholder(placeholder1,placeholderXX)))]) :-
 	treap:empty(T0),
 	treap:add(T0, a(2, X), 1, T1),
 	treap:putPlaceholder(T1, a(3, X), placeholder1, T2),

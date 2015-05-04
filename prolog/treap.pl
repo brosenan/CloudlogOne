@@ -177,6 +177,8 @@ treap:updateHookValue([kv(K, V) | Hs], H, Hv, HsOut, Hv1) :-
 	  treap:updateHookValue(Hs, H, Hv, HsPrime, Hv1))).
 
 treap:putPlaceholder(nil(_), _, PH, ph(PH)).
+treap:putPlaceholder(ph(PH_), _, PH, ph(PH)) :-
+	throw(treap_error(unexpected_placeholder(PH_,PH))).
 treap:putPlaceholder(t(L, K, W, V, H, R), K1, PH, T) :-
 	if(K1 @< K,
 	  (treap:putPlaceholder(L, K1, PH, L1),
@@ -185,7 +187,14 @@ treap:putPlaceholder(t(L, K, W, V, H, R), K1, PH, T) :-
 	  (treap:putPlaceholder(R, K1, PH, R1),
 	  T = t(L, K, W, V, H, R1))).
 
-treap:updatePlaceholder(ph(PH1), _, PH1, PH2, ph(PH2)).
+treap:updatePlaceholder(ph(PH1_), _, PH1, PH2, ph(PH2)) :-
+	if(PH1 = PH1_,
+	(
+	    true
+	), % else
+	(
+	    throw(treap_error(unexpected_placeholder(PH1_,PH1)))
+	)).
 treap:updatePlaceholder(t(L, K, W, V, H, R), K1, PH1, PH2, T) :-
 	if(K1 @< K,
 	  (treap:updatePlaceholder(L, K1, PH1, PH2, L1),

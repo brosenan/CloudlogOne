@@ -218,6 +218,21 @@ describe('LogicNode', function(){
 		assert.ifError(resp[0]);
 		assert.equal(resp[1].statusCode, 200, resp[2]);
 	    }));
+	    var send = $S.async(function*(body) {
+		var opts = {
+		    method: 'POST',
+		    uri: 'http://localhost:12001/',
+		    json: true,
+		    body: body,
+		};
+		var resp = yield request(opts, $S.resumeRaw());
+		assert.ifError(resp[0]);
+		assert.equal(resp[1].statusCode, 200, resp[2]);
+		return resp[2];
+	    });
+	    it.skip('should convert each add() patch to a pair of add_v() and add_m() patches', $T(function*(){
+		var res = yield send({patches: ['add(a(X),1)', 'add(rule(a(X),true,(b(X):-true)),1)']}, $R());
+	    }));
 
 	});
 
