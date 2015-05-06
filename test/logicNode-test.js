@@ -236,8 +236,14 @@ describe('LogicNode', function(){
 		res = yield send({ver: res.ver, patches: ['logicQuery(X, b(X), 1)']}, $R());
 		assert.equal(res.results[0], 'res(7,1)');
 	    }));
+	    it('should support tweetlog (top-down)', $T(function*(){
+		var res = yield send({patches: ['add((timeline(A, B, T) :- follow(A, B), tweet(B, T)), 1)']}, $R());
+		res = yield send({ver: res.ver, patches: ['add((tweet(bob,hello):-true), 1)']}, $R());
+		res = yield send({ver: res.ver, patches: ['add((follow(alice,bob):-true), 1)']}, $R());
+		res = yield send({ver: res.ver, patches: ['logicQuery((B,T), timeline(alice,B,T), 1)']}, $R());
+		assert.equal(res.results[0], 'res((bob,hello),1)');
+	    }));
 
 	});
-
     });
 });

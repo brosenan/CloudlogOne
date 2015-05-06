@@ -27,6 +27,7 @@ function UpstreamClient(node, results) {
 }
 
 var globalQuery = $S.async(function*(self, input, finalResult) {
+//    console.log(input);
     var patches = []
     input.patches.forEach(function(patch) {
 	if(patch.substring(0,4) === 'add(') {

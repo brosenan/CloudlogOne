@@ -14,6 +14,9 @@ multiver:patch(add_v(Axiom, Value), T1, T2) :-
 multiver:query(rawAxiom(Axiom), T, (Axiom, V)) :-
 	multiver:query(h(findDominated(Axiom)), T, (Axiom, V)).
 
+multiver:query(rawAxiom(Axiom), T, (Axiom, V)) :-
+	multiver:query(h(getHook(rule(Axiom,_,_))), T, (Axiom, V)).
+
 multiver:patch(add_m(Axiom, Value), T1, T2) :-
 	catch(
 	(
@@ -48,27 +51,68 @@ partialLogic:match(Fact, rule(Fact, Guard, Res), Res1) :-
 	partialLogic:match(rule(Fact, Guard, Res), Fact, Res1).
 
 
+
 multiver:query(logicQuery(Res, Goal, Mul), T, Ret) :-
-	multiver:query(rawAxiom((Goal :- _)), T, ((Goal :- Body), Val1)),
-	if(Val1 = ph(PH),
-	  Ret = ph(PH),
-	% else
-	  (Val2 is Val1 * Mul,
-	  partialLogic:evaluateGoal(Body, Res, Val2, Ret))).
+	partialLogic:evaluateGoal(Goal, Res, Mul, T, Ret1),
+	if((Ret1 = logicQuery(_,SubGoal,_), partialLogic:canReevaluate(SubGoal)),
+	(
+	    multiver:query(Ret1, T, Ret)
+	), % else
+	(
+	    Ret = Ret1
+	)).
+
+partialLogic:evaluateGoal(true, Res, Mul, _, res(Res, Mul)).
+partialLogic:evaluateGoal(local(G), Res, Mul, _, res(Res, Mul)) :-
+	sandbox:eval(Res, G).
+partialLogic:evaluateGoal((G1, G2), Res, MulIn, T, logicQuery(Res, GOut, MulOut)) :-
+	multiver:query(logicQuery(G2, G1, MulIn), T, Ret1),
+	if(Ret1 = res(GOut, MulOut),
+	(
+	    true
+	), % else
+	(
+	    Ret1 = logicQuery(G2, G1_, MulOut),
+	    GOut = (G1_, G2)
+	)).
+partialLogic:evaluateGoal(Head, Res, MulIn, T, Ret) :-
+	multiver:query(rawAxiom((Head :- _)), T, ((Head :- Body), MulClause)),
+	if(MulClause = ph(PH),
+	(
+	    Ret = ph(PH)
+	), % else
+	(
+	    MulOut is MulIn * MulClause,
+	    Ret = logicQuery(Res, Body, MulOut)
+	)).
+
+partialLogic:canReevaluate(true).	
+partialLogic:canReevaluate(local(_)).	
+partialLogic:canReevaluate((G1,_)) :-
+	partialLogic:canReevaluate(G1).
 
 % logicQuery as a trivial patch
 multiver:patch(logicQuery(_, _, _), T, T).
 
-partialLogic:evaluateGoal(true, Res, Val, res(Res, Val)) :- !.  %%%
-partialLogic:evaluateGoal(local(Goal), Res, Val, res(Res, Val)) :- !,  %%%
-	sandbox:eval(Res, Goal).
-partialLogic:evaluateGoal((Goal1, Goal2), Res, Val, Ret) :- !,  %%%
-	if(partialLogic:canEval(Goal1),
-	  (partialLogic:evaluateGoal(Goal1, Res, Val, res(_, _)),
-	  partialLogic:evaluateGoal(Goal2, Res, Val, Ret)),
-	% else
-	  Ret = logicQuery(Res, (Goal1, Goal2), Val)).
-partialLogic:evaluateGoal(Goal, Res, Val, logicQuery(Res, Goal, Val)).
+%multiver:query(logicQuery(Res, Goal, Mul), T, Ret) :-
+%	multiver:query(rawAxiom((Goal :- _)), T, ((Goal :- Body), Val1)),
+%	if(Val1 = ph(PH),
+%	  Ret = ph(PH),
+%	% else
+%	  (Val2 is Val1 * Mul,
+%	  partialLogic:evaluateGoal(Body, Res, Val2, Ret))).
+%
+%
+%partialLogic:evaluateGoal(true, Res, Val, res(Res, Val)) :- !.  %%%
+%partialLogic:evaluateGoal(local(Goal), Res, Val, res(Res, Val)) :- !,  %%%
+%	sandbox:eval(Res, Goal).
+%partialLogic:evaluateGoal((Goal1, Goal2), Res, Val, Ret) :- !,  %%%
+%	if(partialLogic:canEval(Goal1),
+%	  (partialLogic:evaluateGoal(Goal1, Res, Val, res(_, _)),
+%	  partialLogic:evaluateGoal(Goal2, Res, Val, Ret)),
+%	% else
+%	  Ret = logicQuery(Res, (Goal1, Goal2), Val)).
+%partialLogic:evaluateGoal(Goal, Res, Val, logicQuery(Res, Goal, Val)).
 
 partialLogic:canEval(true).
 partialLogic:canEval(local(_)).

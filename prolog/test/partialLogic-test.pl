@@ -23,7 +23,14 @@ test(rawAxiom_must_match, [fail]) :-
 	multiver:patch(add_v(a(1, 1), 1), T0, T1),
 	multiver:patch(add_v(a(1, 2), 1), T1, T2),
 	multiver:patch(add_v(a(1, 3), 1), T2, T3),
-	multiver:query(rawAxiom(a(_, 4)), T3, _).	
+	multiver:query(rawAxiom(a(_, 4)), T3, _).
+
+% Unlike findDominated, which  returns all dominated results, rawAxiom also returns results that dominate the query, as long as they are unifyable 	
+test(rawAxiom_finds_dominating_results, [R == (foo(bar,bar),1)]) :-
+	hashedTree:empty(T0),
+	multiver:patch(add_v(foo(X, X), 1), T0, T1),
+	multiver:patch(add_m(foo(X, X), 1), T1, T2),
+	once(multiver:query(rawAxiom(foo(bar, X)), T2, R)).
 
 % Patch add_v throws an exception if the modification needs to be performed in a placeholder.
 test(add_v_throws_on_placeholder, [throws(forwardToPlaceholder(myPlaceholder))]) :-
@@ -35,7 +42,7 @@ test(add_v_throws_on_placeholder, [throws(forwardToPlaceholder(myPlaceholder))])
 test(rawAxiom_returns_placeholder, [R =@= (b(_), ph(myPlaceholder))]) :-
 	hashedTree:empty(T0),
 	multiver:patch(h_putPlaceholder(a, myPlaceholder), T0, T1),
-	multiver:query(rawAxiom(b(_)), T1, R).
+	multiver:query(rawAxiom(b(_)), T1, R), !.
 
 
 % [patch] add_m(+Axiom, +Value): Adds Value to a multiplier matching Axiom.  
@@ -77,12 +84,14 @@ test(add_m_returns_placeholder, [R =@= add(_,ph(myPlaceholder))]) :-
 	multiver:patch(h_putPlaceholder(a, myPlaceholder), T0, T1),
 	multiver:query(add_m(rule(a, true, b), 1), T1, R).
 
-% [query] logicQuery(?Result, +Goal, +Mul): Evaluates Goal using clauses (axioms of the form H :- B) in the database. Result should be a term sharing some variables with Goal, and Mul should be a number.
+% [query] logicQuery(?Result, +Goal, +Mul): Evaluates Goal using clauses (axioms of the form H :- B) in the database. 
+%                                           Result should be a term sharing some variables with Goal, and Mul should be a number.
 %                                           Returns zero or more of:
-%                                            - res(Result, Value), where Result is unified by the goal, and Value is the value of the clause axiom contributing this result, times Mul.
+%                                            - res(Result, Value), where Result is unified by the goal,
+%                                              and Value is the value of the clause axiom contributing this result, times Mul.
 %                                            - ph(PH), where PH is a placeholder, in case the placeholder needs to be consulted for more results.
-%                                            - logicQuery(Result, Goal1, Mul1), where Goal1 is a (different) goal, and Mul1 is a (different) number, indicates that Goal1 needs to be consulted
-%                                              for more results.
+%                                            - logicQuery(Result, Goal1, Mul1), where Goal1 is a (different) goal, 
+%                                              and Mul1 is a (different) number, indicates that Goal1 needs to be consulted for more results.
 
 % If Goal is "true", the query succeeds without further conditions.
 test(logicQuery_simple, [R == res(bar, 6)]) :-
@@ -128,7 +137,7 @@ test(logicQuery_other_local, [R =@= logicQuery(X, (bar(X), local(X = 7)), 15)]) 
 test(logicQuery_placeholder, [R == ph(myPlaceholder)]) :-
 	hashedTree:empty(T0),
 	multiver:patch(h_putPlaceholder(a, myPlaceholder), T0, T1),
-	multiver:query(logicQuery(X, foo(X), 1), T1, R).
+	multiver:query(logicQuery(X, foo(X), 1), T1, R), !.
 
 % Results can be either of the form res(Result), unifying Result with a result, or logicQuery(Result, OtherGoal), indicating a different goal to be evaulated.
 % In case of a placeholder PH (more results located elsewhere), logicQuery(Result, Goal, PH) will be returned.
