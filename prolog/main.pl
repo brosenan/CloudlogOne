@@ -65,13 +65,6 @@ main:handleCmd(on((Hc,Hv1), Op), C1, C2, yes) :-
 	(
 	    throw(chunkDoesNotExist(Hc))
 	)),
-	forall(
-	  multiver:query(Op, M1, Hv1, R),
-	% do
-	  if(main:hasPlaceholder(R, PH),
-	    main:writeUpstream(PH, Op),
-	  % else
-	    (write(': '), main:mywrite(R), nl))),
 	main:applyPatches(Op, Hc, M1, Hv1, Hv2, M2),
 	rb_insert(C1, Hc, M2, C2),
 	writeHash(Hc, Hv2).
@@ -169,6 +162,13 @@ main:applyPatches([Op | Ops], Hc, M1, Hv1, Hv3, M3) :- !, %%%
 	main:applyPatches(Ops, Hc, M2, Hv2, Hv3, M3).
 
 main:applyPatches(Op, Hc, M1, Hv1, Hv2, M2) :-
+	forall(
+	  multiver:query(Op, M1, Hv1, R),
+	% do
+	  if(main:hasPlaceholder(R, PH),
+	    main:writeUpstream(PH, Op),
+	  % else
+	    (write(': '), main:mywrite(R), nl))),
 	catch(
 	(
 	    catch(

@@ -100,7 +100,7 @@ describe('PeerLocator', function(){
 	    var resp = yield request(opts, $S.resumeRaw());
 	    assert.ifError(resp[0]);
 	    assert.equal(resp[1].statusCode, 500);
-	    assert.equal(resp[2], 'Foo bar');
+	    assert(resp[2].match(/Foo bar/), resp[2] + ' matches Foo bar');
 	    yield locator.stop($R());
 	}));
     });

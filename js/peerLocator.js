@@ -108,7 +108,7 @@ clazz.service = function(path, handler) {
     this._app.post(path, function(req, res) {
 	handler(req.body, function(err, output) {
 	    if(err) {
-		res.status(500).send(err.message);
+		res.status(500).send(err.stack);
 	    } else {
 		res.json(output);
 	    }

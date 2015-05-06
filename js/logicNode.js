@@ -26,8 +26,46 @@ function UpstreamClient(node, results) {
     });
 }
 
+var globalQuery = $S.async(function*(self, input, finalResult) {
+    var patches = []
+    input.patches.forEach(function(patch) {
+	if(patch.substring(0,4) === 'add(') {
+	    patches.push('add_v(' + patch.substring(4));
+	    patches.push('add_m(' + patch.substring(4));
+	} else {
+	    patches.push(patch);
+	}
+    });
+    var ver;
+    if(!input.ver) {
+	var em = self._prolog.request('calcInitialHash([' + patches.join(',') + '])');
+	ver = yield function(cb) {
+	    em.on('error', cb);
+	    em.on('success', function(ver) { cb(undefined, ver + ",'_'"); });
+	}($R());
+    } else {
+	ver = input.ver;
+    }
+    var results = [];
+    let client = new UpstreamClient(self, results);
+    ver = yield client.apply(ver, '[' + patches.join(',') + ']', $R());
+    var newPatches = [];
+    results.forEach(function(res) {
+	if(res.substring(0,4) === 'res(') {
+	    finalResult.push(res);
+	} else {
+	    newPatches.push(res);
+	}
+    });
+    if(newPatches.length === 0) {
+	return {ver: ver, results: finalResult};
+    } else {
+	return yield globalQuery(self, {ver: ver, patches: newPatches}, finalResult, $R());
+    }
+});
 module.exports = function(options, bucketStore) {
     var self = this;
+
     this._port = options.port;
     this._locator = new PeerLocator(this._port, options.peer, options.clusterSize);
     this._prolog = new PrologInterface('/tmp/logicNode.' + options.port + '.log');
@@ -51,14 +89,7 @@ module.exports = function(options, bucketStore) {
 				$R());
 	return {ver: ver, res: results};
     }));
-    this._locator.service('/', $S.async(function*(input) {
-	var em = self._prolog.request('calcInitialHash([' + input.patches.join(',') + '])');
-	var ver = yield function(cb) {
-	    em.on('error', cb);
-	    em.on('success', function(ver) { cb(undefined, ver); });
-	}($R());
-	return {ver: ver};
-    }));
+    this._locator.service('/', function(input, cb) { globalQuery(self, input, [], cb); });
 };
 
 var clazz = module.exports.prototype;
