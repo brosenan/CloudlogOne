@@ -133,16 +133,16 @@ describe('PrologInterface', function(){
 	    
 	    var id = yield* createChunk(prolog, ['add_v(a, 1)']);
 	    
-	    var em = prolog.request("on((" + id + "), add_m(rule(b, true, c), 1))");
+	    var em = prolog.request("on((" + id + "), add_m(rule(b(X), true, c(X)), 1))");
 	    id = (yield em.on("success", $S.resumeRaw()))[0];
 	    
-	    em = prolog.request("on((" + id + "), add_v(b, 1))");
+	    em = prolog.request("on((" + id + "), add_v(b(4), 1))");
 
 	    var res = yield em.on("upstream", $S.resumeRaw());
 	    var split = res[0].split(',');
 	    assert.equal(split[1], "'_'");
-	    assert(res[2].match(/add_m\(rule\(b,true,c\),1\)/), res[2] + ' match add_m(rule(b,true,c),1)');
-	    assert(res[2].match(/add_v\(b,1\)/), res[2] + ' match add_v(b,1)');
+	    assert(res[2].match(/add_m\(rule\(b\(.*\),true,c\(.*\)\),1\)/), res[2] + ' match add_m(rule(b(X),true,c(X)),1)');
+	    assert(res[2].match(/add_v\(b\(4\),1\)/), res[2] + ' match add_v(b(4),1)');
 
 	    // The first part of the ID should be the ID of the new chunk
 	    prolog = new PrologInterface();

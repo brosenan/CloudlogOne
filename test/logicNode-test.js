@@ -243,7 +243,13 @@ describe('LogicNode', function(){
 		res = yield send({ver: res.ver, patches: ['logicQuery((B,T), timeline(alice,B,T), 1)']}, $R());
 		assert.equal(res.results[0], 'res((bob,hello),1)');
 	    }));
-
+	    it('should support tweetlog (bottom-up)', $T(function*(){
+		var res = yield send({patches: ['add(rule(follow(A, B), true, rule(tweet(B, T), true, (timeline(A, B, T) :- true))), 1)']}, $R());
+		res = yield send({ver: res.ver, patches: ['add(tweet(bob,hello), 1)']}, $R());
+		res = yield send({ver: res.ver, patches: ['add(follow(alice,bob), 1)']}, $R());
+		res = yield send({ver: res.ver, patches: ['logicQuery((B,T), timeline(alice,B,T), 1)']}, $R());
+		assert.equal(res.results[0], 'res((bob,hello),1)');
+	    }));
 	});
     });
 });
