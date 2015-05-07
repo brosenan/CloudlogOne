@@ -99,6 +99,8 @@ clazz.start = function(cb) {
     return this._locator.run(cb); 
 };
 
-clazz.stop = function(cb) {
-    this._locator.stop(cb);
-};
+clazz.stop = $S.async(function*() {
+    this._locator.stop($S.fork());
+    this._prolog.stop($S.fork());
+    yield $S.join();
+});

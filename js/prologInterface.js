@@ -80,3 +80,7 @@ module.exports.prototype.done = function() {
 module.exports.prototype.send = function(req) {
     this.prolog.stdin.write(req + '.\n');
 };
+
+module.exports.prototype.stop = function(cb) {
+    this.prolog.stdin.end(cb);
+};

@@ -39,6 +39,7 @@ multiver:query(add_v(Axiom1, Value1), T, add(Axiom3, ValueMult)) :-
 	ValueMult is Value1 * Value2.
 
 multiver:query(add_m(Axiom1, Value1), T, add(Axiom3, ValueMult)) :-
+	\+ground(Axiom1),
 	treap:hookDomain(Axiom1, D),
 	multiver:query(h(findDominated(D)), T, (Axiom2, Value2)),
 	if(Value2 = ph(_),

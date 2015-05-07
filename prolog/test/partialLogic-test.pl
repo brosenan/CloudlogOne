@@ -82,7 +82,7 @@ test(add_v_rule, [R == add(bar, 6)]) :-
 test(add_m_returns_placeholder, [R =@= add(_,ph(myPlaceholder))]) :-
 	hashedTree:empty(T0),
 	multiver:patch(h_putPlaceholder(a, myPlaceholder), T0, T1),
-	multiver:query(add_m(rule(a, true, b), 1), T1, R).
+	multiver:query(add_m(rule(a(X), true, b(X)), 1), T1, R).
 
 % [query] logicQuery(?Result, +Goal, +Mul): Evaluates Goal using clauses (axioms of the form H :- B) in the database. 
 %                                           Result should be a term sharing some variables with Goal, and Mul should be a number.
