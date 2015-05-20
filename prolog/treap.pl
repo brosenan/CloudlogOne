@@ -3,8 +3,6 @@
 :- use_module(termcompare).
 :- use_module(multiver).
 
-:- multifile hookDomain/2.
-
 :- dynamic max_depth/1.
 
 max_depth(20).
@@ -103,15 +101,11 @@ treap:treeMember(t(L, _, _, _, _, _), D, K, V) :- treap:treeMember(L, D, K, V).
 treap:treeMember(t(_, K, _, V, _, _), D, K, V) :- termcompare:dominates(D, K).
 treap:treeMember(t(_, _, _, _, _, R), D, K, V) :- treap:treeMember(R, D, K, V).
 
-treap:addHook(T1, H, V, T2, NewV) :-
-	treap:hookDomain(H, D),
-	treap:addHook(T1, H, V, D, T2, NewV).
-
-treap:addHook(nil(Hs), H, Hv, _, nil(Hs1), NewV) :-
-	treap:updateHookValue(Hs, H, Hv, Hs1, NewV).
+treap:addHook(nil(Hs), H, Hv, D, nil(Hs1), NewV) :-
+	treap:updateHookValue(Hs, H, Hv, D, Hs1, NewV).
 treap:addHook(t(L, K, W, V, Hs, R), H, Hv, D, T, NewV) :-
 	if(termcompare:dominates(D, K),
-	  (treap:updateHookValue(Hs, H, Hv, Hs1, NewV),
+	  (treap:updateHookValue(Hs, H, Hv, D, Hs1, NewV),
 	  T = t(L, K, W, V, Hs1, R)),
 	% else
 	  if(D @< K,
@@ -125,15 +119,13 @@ treap:addHook(ph(PH), _, _, _, _, _) :-
 	throw(forwardToPlaceholder(PH)).
 
 treap:getHook(nil(Hs), K, H, V) :-
-	member(kv(H,V), Hs),
-	treap:hookDomain(H, D),
+	member(kv(D,H,V), Hs),
 	termcompare:dominates(D, K).
 
 treap:getHook(t(_, _, _, _, Hs, _), K, H, V) :-
-	member(kv(H,V), Hs),
-	treap:hookDomain(H, D),
+	member(kv(D,H,V), Hs),
 	termcompare:dominates(D, K).
-	
+
 treap:getHook(t(L, K, _, _, _, R), K1, H, V) :-
 	\+termcompare:dominates(K1, K),
 	if(K1 @< K,
@@ -164,17 +156,17 @@ treap:splitThreeWays([kv(H, V) | Hs], K, LOut, MOut, ROut) :-
 	    [LOut, MOut, ROut] = [LPrime, MPrime, [kv(H, V) | RPrime]])),
 	treap:splitThreeWays(Hs, K, LPrime, MPrime, RPrime).
 
-treap:updateHookValue([], H, Hv, [kv(H, Hv)], Hv).
-treap:updateHookValue([kv(K, V) | Hs], H, Hv, HsOut, Hv1) :-
-	if(K =@= H,
+treap:updateHookValue([], H, Hv, D, [kv(D, H, Hv)], Hv).
+treap:updateHookValue([kv(K, H1, V) | Hs], H, Hv, D, HsOut, Hv1) :-
+	if(K =@= D,
 	  (Hv1 is V + Hv,
 	  if(Hv1 == 0,
 	    HsOut = Hs,
 	  % else
-	    HsOut = [kv(H, Hv1) | Hs])),
+	    HsOut = [kv(D, H1, Hv1) | Hs])),
 	% else
-	  (HsOut = [kv(K, V) | HsPrime],
-	  treap:updateHookValue(Hs, H, Hv, HsPrime, Hv1))).
+	  (HsOut = [kv(K, H1, V) | HsPrime],
+	  treap:updateHookValue(Hs, H, Hv, D, HsPrime, Hv1))).
 
 treap:putPlaceholder(nil(_), _, PH, ph(PH)).
 treap:putPlaceholder(ph(PH_), _, PH, ph(PH)) :-
@@ -202,10 +194,10 @@ treap:updatePlaceholder(t(L, K, W, V, H, R), K1, PH1, PH2, T) :-
 	% else
 	  (treap:updatePlaceholder(R, K1, PH1, PH2, R1),
 	  T = t(L, K, W, V, H, R1))).
-	
-multiver:patch(add(K, V, NewV), T1, T2) :- 
-	random(W), 
-	max_depth(D), 
+
+multiver:patch(add(K, V, NewV), T1, T2) :-
+	random(W),
+	max_depth(D),
 	treap:add(T1, K, W, V, D, T2, NewV).
 
 multiver:query(get(K), T, V) :-
