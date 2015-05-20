@@ -67,12 +67,19 @@ main:handleCmd(create(Patch), C1, C2, yes) :-
 main:handleCmd(on((Hc,Hv1), Op), C1, C2, yes) :-
 	if(rb_lookup(Hc, M1, C1),
 	(
-	    true
+		true
 	), % else
 	(
-	    throw(chunkDoesNotExist(Hc))
+		throw(chunkDoesNotExist(Hc))
 	)),
 	main:applyPatches(Op, Hc, M1, Hv1, Hv2, M2),
+	if(main:getKey(Op, Key),
+	(
+		main:writeClientPatch(h_updatePlaceholder(Key, (Hc, Hv1), (Hc, Hv2)))
+	), % else
+	(
+		true
+	)),
 	rb_insert(C1, Hc, M2, C2),
 	writeHash(Hc, Hv2).
 
