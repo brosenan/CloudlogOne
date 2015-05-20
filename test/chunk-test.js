@@ -59,7 +59,7 @@ describe('Chunk', function(){
 	    // The first argument is the ID, with '_' as the second part, indicating a new chunk.
 	    assert.equal(upstream.apply.firstCall.args[0].split(',')[1], "'_'");
 	    // The second argument is the initialization patch.
-	    assert(upstream.apply.firstCall.args[1].match(/bar\(foo\):-true/), 
+	    assert(upstream.apply.firstCall.args[1].match(/bar\(foo\):-true/),
 		   upstream.apply.firstCall.args[1] + " match bar(foo):-true");
 	    // The third argument should be a callback, that receives the new ID.
 	    var firstHalf = upstream.apply.firstCall.args[0].split(',')[0];

@@ -59,7 +59,7 @@ clazz.apply = function(v1, patch, downCB, cb) {
 	    cb(err);
 	});
 	em.on('success', function(res) {
-	    cb(undefined, res); 
+	    cb(undefined, res);
 	});
     };
 
