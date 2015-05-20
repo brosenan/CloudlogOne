@@ -55,7 +55,14 @@ main:handleCmd(create(Patch), C1, C2, yes) :-
 	multiver:patch(Patch, M1, H0, H1, M2),
 	main:reportPersist(H1, create(Patch)),
 	rb_insert(C1, H1, M2, C2),
-	writeHash(H1, H1).
+	if(main:getKey(Patch, Key),
+	(
+		main:writeClientPatch(h_putPlaceholder(Key, (H1, H1)))
+	), % else
+	(
+		true
+	)),
+	main:writeHash(H1, H1).
 
 main:handleCmd(on((Hc,Hv1), Op), C1, C2, yes) :-
 	if(rb_lookup(Hc, M1, C1),
@@ -195,3 +202,7 @@ main:applyPatches(Op, Hc, M1, Hv1, Hv2, M2) :-
 	    main:writeUpstream(PH, Op),
 	    (Hv2, M2) = (Hv1, M1)
 	)).
+main:writeClientPatch(Patch) :-
+	write('$ '),
+	main:mywrite(Patch),
+	nl.

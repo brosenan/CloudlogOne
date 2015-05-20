@@ -76,7 +76,13 @@ describe('PrologInterface', function(){
 			// The second argument is a patch command
 			assert.equal(persist[1], 'create([add_v((foo(bar):-true),1)])');
 		}));
-
+		it('should emit a "h_putPlaceholder() patch as a client-patch"', $T(function*() {
+			var prolog = new PrologInterface();
+			var em = prolog.request("create([add_v((foo(bar):-true),1)])");
+			var clientPatch = yield em.on('client-patch', $S.resumeRaw());
+			var v = (yield em.on('success', $S.resumeRaw()))[0];
+			assert.equal(clientPatch[0], 'h_putPlaceholder((foo(bar):-true), (' + v + '))');
+		}));
 	});
 	function* createChunk(prolog, ops) {
 		var em = prolog.request("create([" + ops.join(",") + "])");
@@ -130,12 +136,12 @@ describe('PrologInterface', function(){
 		it('should request the creation of a new chunk if the size limit has been exceeded', $T(function*(){
 			var prolog = new PrologInterface();
 			yield setMaxDepth(prolog, 1, $S.resumeRaw());
-			
+
 			var id = yield* createChunk(prolog, ['add_v(a, 1)']);
-			
+
 			var em = prolog.request("on((" + id + "), add_m(rule(b(X), true, c(X)), 1))");
 			id = (yield em.on("success", $S.resumeRaw()))[0];
-			
+
 			em = prolog.request("on((" + id + "), add_v(b(4), 1))");
 
 			var res = yield em.on("upstream", $S.resumeRaw());
@@ -149,7 +155,7 @@ describe('PrologInterface', function(){
 			var newID = (yield prolog.request('create(' + res[2] + ')').on('success', $S.resumeRaw()))[0];
 			assert.equal(split[0], newID.split(',')[0]);
 		}));
-		
+
 		it('should convert pending hooks to creation patches', $T(function*(){
 			var prolog = new PrologInterface();
 			yield setMaxDepth(prolog, 1, $S.resumeRaw());

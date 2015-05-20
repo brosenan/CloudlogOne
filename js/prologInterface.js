@@ -34,6 +34,8 @@ module.exports = function(logfile) {
 			self.emitter.emit('downstream', data.substr(2));
 		} else if(data.substr(0, 2) === '@ ') {
 			key = data.substr(2);
+		} else if(data.substr(0, 2) === '$ ') {
+			self.emitter.emit('client-patch', data.substr(2));
 		} else if(data.substr(0, 2) === '? ') {
 			let m = data.substr(2).match(upstreamRegex);
 			if(m == null) {
