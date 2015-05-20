@@ -134,26 +134,24 @@ treap:getHook(t(L, K, _, _, _, R), K1, H, V) :-
 	  treap:getHook(R, K1, H, V)).
 
 treap:rotateHooks([], H2, _, [], H2).
-treap:rotateHooks([kv(H, V) | Rest], H2, K, H1Prime, H2Prime) :-
+treap:rotateHooks([kv(D, H, V) | Rest], H2, K, H1Prime, H2Prime) :-
 	treap:rotateHooks(Rest, H2, K, H1PrimePrime, H2PrimePrime),
-	treap:hookDomain(H, D),
 	if(termcompare:dominates(D, K),
 	  (H1Prime = H1PrimePrime,
-	  H2Prime = [kv(H, V), H2PrimePrime]),
+	  H2Prime = [kv(D, H, V), H2PrimePrime]),
 	% else
-	  (H1Prime = [kv(H, V) | H1PrimePrime],
+	  (H1Prime = [kv(D, H, V) | H1PrimePrime],
 	  H2Prime = H2PrimePrime)).
 
 treap:splitThreeWays([], _, [], [], []).
-treap:splitThreeWays([kv(H, V) | Hs], K, LOut, MOut, ROut) :-
-	treap:hookDomain(H, D),
+treap:splitThreeWays([kv(D, H, V) | Hs], K, LOut, MOut, ROut) :-
 	if(termcompare:dominates(D, K),
-	  [LOut, MOut, ROut] = [LPrime, [kv(H, V) | MPrime], RPrime],
+	  [LOut, MOut, ROut] = [LPrime, [kv(D, H, V) | MPrime], RPrime],
 	% else
 	  if(D @< K,
-	    [LOut, MOut, ROut] = [[kv(H, V) | LPrime], MPrime, RPrime],
+	    [LOut, MOut, ROut] = [[kv(D, H, V) | LPrime], MPrime, RPrime],
 	  % else
-	    [LOut, MOut, ROut] = [LPrime, MPrime, [kv(H, V) | RPrime]])),
+	    [LOut, MOut, ROut] = [LPrime, MPrime, [kv(D, H, V) | RPrime]])),
 	treap:splitThreeWays(Hs, K, LPrime, MPrime, RPrime).
 
 treap:updateHookValue([], H, Hv, D, [kv(D, H, Hv)], Hv).
@@ -203,8 +201,8 @@ multiver:patch(add(K, V, NewV), T1, T2) :-
 multiver:query(get(K), T, V) :-
 	treap:get(T, K, V).
 
-multiver:patch(addHook(H, V, NewV), T1, T2) :-
-	treap:addHook(T1, H, V, T2, NewV).
+multiver:patch(addHook(H, V, D, NewV), T1, T2) :-
+	treap:addHook(T1, H, V, D, T2, NewV).
 
 multiver:query(getHook(K), T, (H,V)) :-
 	treap:getHook(T, K, H, V).
