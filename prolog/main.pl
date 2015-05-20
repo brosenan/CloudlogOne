@@ -22,16 +22,16 @@ main:cloudlog1(T1) :-
 	    ), % else
 	    (
 		T2 = T1,
-		write('! '), 
-		main:mywrite(unknownCommand(Cmd)), 
+		write('! '),
+		main:mywrite(unknownCommand(Cmd)),
 		nl
 	    ))
 	),
 	Err,
 	(
 	    T2 = T1,
-	    write('! '), 
-	    main:mywrite(error(Err)), 
+	    write('! '),
+	    main:mywrite(error(Err)),
 	    nl
 	)),
 	if(Continue = yes,
@@ -120,21 +120,21 @@ main:hasPlaceholder(add(_, ph(PH)), PH).
 main:writeUpstream(PH, Op) :-
 	if(main:getKey(Op, Key),
 	(
-	    write('@ '), 
+	    write('@ '),
 	    main:mywrite(Key),
 	    nl
 	),
 	(
 	    true
 	)),
-	write('? '), 
-	main:mywrite(PH), 
+	write('? '),
+	main:mywrite(PH),
 	write(' '),
-	main:mywrite(Op), 
+	main:mywrite(Op),
 	nl.
 
 main:convertHooks([], []).
-main:convertHooks([kv(K, V) | Hooks], [add_m(K, V) | Patches]) :-
+main:convertHooks([kv(_, K, V) | Hooks], [add_m(K, V) | Patches]) :-
 	main:convertHooks(Hooks, Patches).
 
 main:calcInitialHash(Patch, Hash) :-
@@ -144,7 +144,7 @@ main:calcInitialHash(Patch, Hash) :-
 
 main:getKey(add_v(Key, _), Key).
 main:getKey(add_m(Rule, _), Key) :-
-	treap:hookDomain(Rule, Key).
+	partialLogic:hookDomain(Rule, Key).
 main:getKey(logicQuery(_, Key, _), Key).
 main:getKey([Op | _], Key) :-
 	main:getKey(Op, Key).
@@ -186,7 +186,7 @@ main:applyPatches(Op, Hc, M1, Hv1, Hv2, M2) :-
 	    (
 		main:convertHooks(Hooks, HookPatches),
 		main:calcInitialHash([Op|HookPatches], InitialHash),
-		writeUpstream((InitialHash, '_'), [Op|HookPatches]), 
+		writeUpstream((InitialHash, '_'), [Op|HookPatches]),
 		(Hv2, M2) = (Hv1, M1)
 	    ))
 	), % catch
@@ -195,4 +195,3 @@ main:applyPatches(Op, Hc, M1, Hv1, Hv2, M2) :-
 	    main:writeUpstream(PH, Op),
 	    (Hv2, M2) = (Hv1, M1)
 	)).
-
