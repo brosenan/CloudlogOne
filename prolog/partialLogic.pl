@@ -4,9 +4,14 @@
 :- use_module(util).
 :- use_module(sandbox).
 
-treap:hookDomain(rule(A, _, _), A) :- !.
-treap:hookDomain(A, rule(A, _, _)) :- !.
-
+partialLogic:hookDomain(A, B) :-
+		if(A = rule(B, _, _),
+		(
+			true
+		), % else
+		(
+			B = rule(A, _, _)
+		)).
 
 multiver:patch(add_v(Axiom, Value), T1, T2) :-
 	multiver:patch(h_add(Axiom, Value, _), T1, T2).
@@ -23,14 +28,15 @@ multiver:patch(add_m(Axiom, Value), T1, T2) :-
 	    T2 = T1 % Don't bother for ground axioms
 	), % else
 	(
-	    catch(
-	    (
-		multiver:patch(h_addHook(Axiom, Value, _), T1, T2)
-	    ),
-	    forwardToPlaceholder(_),
-	    (
-		T2 = T1
-	    ))
+    catch(
+    (
+			partialLogic:hookDomain(Axiom, Key),
+			multiver:patch(h_addHook(Axiom, Value, Key, _), T1, T2)
+    ),
+    forwardToPlaceholder(_),
+    (
+			T2 = T1
+    ))
 	)).
 
 multiver:query(add_v(Axiom1, Value1), T, add(Axiom3, ValueMult)) :-
@@ -40,18 +46,18 @@ multiver:query(add_v(Axiom1, Value1), T, add(Axiom3, ValueMult)) :-
 
 multiver:query(add_m(Axiom1, Value1), T, add(Axiom3, ValueMult)) :-
 	\+ground(Axiom1),
-	treap:hookDomain(Axiom1, D),
+	partialLogic:hookDomain(Axiom1, D),
 	multiver:query(h(findDominated(D)), T, (Axiom2, Value2)),
 	if(Value2 = ph(_),
 	  ValueMult = Value2,
 	% else
 	  (partialLogic:match(Axiom1, Axiom2, Axiom3),
 	  ValueMult is Value1 * Value2)).
-	  
+
 
 partialLogic:match(rule(Fact, Guard, Res), Fact, Res1) :- !, %%%
 	catch((sandbox:eval(Res, Guard), Res1 = Res),
-	  timed_out(_), 
+	  timed_out(_),
 	  Res1 = timed_out(rule(Fact, Guard, Res))).
 
 partialLogic:match(Fact, rule(Fact, Guard, Res), Res1) :-
@@ -93,8 +99,8 @@ partialLogic:evaluateGoal(Head, Res, MulIn, T, Ret) :-
 	    Ret = logicQuery(Res, Body, MulOut)
 	)).
 
-partialLogic:canReevaluate(true).	
-partialLogic:canReevaluate(local(_)).	
+partialLogic:canReevaluate(true).
+partialLogic:canReevaluate(local(_)).
 partialLogic:canReevaluate((G1,_)) :-
 	partialLogic:canReevaluate(G1).
 

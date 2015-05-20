@@ -8,4 +8,3 @@ find $dir -name "*-test.pl" | sed -e "s%.*%:- ['&'].%" > $testfile
 
 swipl -f $testfile -t 'run_tests.' -q
 rm $testfile
-

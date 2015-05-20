@@ -17,11 +17,11 @@ multiver:patch(h_add(K, V, V1), hashed(T1, H1), hashed(T2, H2)) :-
 	util:updateHash(H1, (K, V2), H3),
 	util:updateHash(H3, (K, V1), H2).
 
-multiver:patch(h_addHook(K, V, V1), hashed(T1, H1), hashed(T2, H2)) :-
-	multiver:patch(addHook(K, V, V1), T1, T2),
+multiver:patch(h_addHook(Hook, V, K, V1), hashed(T1, H1), hashed(T2, H2)) :-
+	multiver:patch(addHook(Hook, V, K, V1), T1, T2),
 	V2 is V1 - V,
-	util:updateHash(H1, hook(K, V2), H3),
-	util:updateHash(H3, hook(K, V1), H2).
+	util:updateHash(H1, hook(K, Hook, V2), H3),
+	util:updateHash(H3, hook(K, Hook, V1), H2).
 
 multiver:patch(h_putPlaceholder(K, PH), hashed(T1, H1), hashed(T2, H2)) :-
 	multiver:patch(putPlaceholder(K, PH), T1, T2),

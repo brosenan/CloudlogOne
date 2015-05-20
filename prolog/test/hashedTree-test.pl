@@ -19,14 +19,14 @@ test(h_add, [(R1, R2) == (3, '2jmj7l5rSw0yVb/vlWAYkK/YBwk=')]) :-
 	multiver:patch(h_add(foo, -3, _), T1, T2),
 	multiver:query(getHash, T2, R2).
 
-test(h_add_hook, [R == (testHook(foo, bar), 3)]) :-
+test(h_add_hook, [R == (testHook(bar), 3)]) :-
 	hashedTree:empty(T0),
 	multiver:query(getHash, T0, H0),
-	multiver:patch(h_addHook(testHook(foo, bar), 3, _), T0, T1),
+	multiver:patch(h_addHook(testHook(bar), 3, foo, _), T0, T1),
 	multiver:query(h(getHook(foo)), T1, R),
 	multiver:query(getHash, T1, H1),
 	util:enforce(H1 \= H0),
-	multiver:patch(h_addHook(testHook(foo, bar), -3, _), T1, T2),
+	multiver:patch(h_addHook(testHook(bar), -3, foo, _), T1, T2),
 	multiver:query(getHash, T2, H2),
 	util:enforce(H2 == H0).
 
