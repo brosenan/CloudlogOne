@@ -16,24 +16,30 @@ clazz.init = function(patch, cb) {
 	var fnf = new FireAndForget();
 	var em = this._request('create(' + patch + ')', fnf);
 	var cb1 = fnf.fork();
-	var res;
+	var ver;
+	var clientPatch;
 	em.on('success', function(v0) {
-		res = v0;
+		ver = v0;
 		cb1();
 	});
 	em.on('error', function(err) {
 		cb1(err);
 	});
+	em.on('client-patch', function(patch) {
+		clientPatch = patch;
+	});
 	fnf.join(function(err) {
-		cb(err, res);
+		cb(err, {ver: ver, clientPatches: [clientPatch]});
 	});
 };
 
-clazz.apply = function(v1, patch, downCB, cb) {
+clazz.apply = function(v1, patch, cb) {
 	var self = this;
 	var upstream = {};
 	var upstreamKeys = {};
 	var fnf = new FireAndForget();
+	var downstream = [];
+	var clientPatches = [];
 	$S.run(function*() {
 		var em1 = self._request('on((' + v1 + '), ' + patch + ')', fnf);
 		em1.on('upstream', function(v, k, p) {
@@ -44,7 +50,12 @@ clazz.apply = function(v1, patch, downCB, cb) {
 			upstreamKeys[v] = k;
 		});
 		em1.on('downstream', function(res) {
-			downCB(res);
+			downstream.push(res);
+		});
+		em1.on('client-patch', function(res) {
+			if(res !== '[]') {
+				clientPatches.push(res);
+			}
 		});
 		em1.on('error', function(err) {
 			cb(err);
@@ -58,6 +69,9 @@ clazz.apply = function(v1, patch, downCB, cb) {
 		em.on('error', function(err) {
 			cb(err);
 		});
+		em.on('client-patch', function(res) {
+			clientPatches.push(res);
+		});
 		em.on('success', function(res) {
 			cb(undefined, res);
 		});
@@ -68,21 +82,16 @@ clazz.apply = function(v1, patch, downCB, cb) {
 		placeholders.forEach(function(v) {
 			self._upstream.apply(v, '[' + upstream[v].join(',') + ']', $S.fork());
 		});
-		var newIDs = yield $S.join();
-		for(let i = 0; i < newIDs.length; i++) {
-			let patch;
-			if(placeholders[i].substring(placeholders[i].length-4) === ",'_'") {
-				patch = 'h_putPlaceholder(' + upstreamKeys[placeholders[i]] + ',(' + newIDs[i] + '))';
-			} else if(placeholders[i] !== newIDs[i]) {
-				patch = 'h_updatePlaceholder(' + upstreamKeys[placeholders[i]] + ',(' + placeholders[i] + '),(' + newIDs[i] + '))';
-			}
+		var placeholderPatches = yield $S.join();
+		for(let i = 0; i < placeholderPatches.length; i++) {
+			let patch = placeholderPatches[i];
 			if(patch) {
 				try {
 					v2 = yield applyPatch(v2, patch, fnf, $R());
 				} catch(e) {
 					let m = e.message.match(/treap_error\(unexpected_placeholder\(\((.*)\),[ ]*\((.*)\)\)\)/);
 					if(m) {
-						v2 = yield self.apply(v2, upstream[placeholders[i]], downCB, $R());
+						v2 = yield self.apply(v2, upstream[placeholders[i]], $R());
 					} else {
 						throw e;
 					}
@@ -90,7 +99,7 @@ clazz.apply = function(v1, patch, downCB, cb) {
 			}
 		}
 		yield fnf.join($R());
-		return v2;
+		return {ver: v2, results: downstream, clientPatches: clientPatches};
 	});
 };
 

@@ -19,7 +19,7 @@ describe('ChunkStore', function(){
 //		prolog = new PrologInterface('foo.log');
 		prolog = new PrologInterface();
 	});
-	
+
 	describe('.getChunk(v, cb(err, chunk))', function(){
 		it('should return a chunk for the given version', $T(function*(){
 			var chunkStore = new ChunkStore(prolog, null, bucketStore());
@@ -33,7 +33,7 @@ describe('ChunkStore', function(){
 		it('should prune chunks that fall out of cache', $T(function*(){
 			var chunkStore = new ChunkStore(prolog, null, bucketStore(), {capacity: 1});
 			var c1 = yield chunkStore.getChunk("'t97fVauK9CLRD0GP5GEiFsUxupo=',aaa", $R());
-			var id = yield c1.init('add_v((a(1):-true), 1)', $R());
+			var id = (yield c1.init('add_v((a(1):-true), 1)', $R())).ver;
 			// Fetching c2 should force c1 out of the cache
 			var c2 = yield chunkStore.getChunk("'rlvjsFVoCtB+OyTTF7zld3YCUII=',bbb", $R());
 			yield c2.init('add_v((b(2):-true), 1)', $R());
@@ -42,8 +42,8 @@ describe('ChunkStore', function(){
 			assert.equal(err[0].message, "error(chunkDoesNotExist('t97fVauK9CLRD0GP5GEiFsUxupo='))");
 			// Requesting c1 again should restore its state
 			c1 = yield chunkStore.getChunk("'t97fVauK9CLRD0GP5GEiFsUxupo=',aaa", $R());
-			var res = yield c1.apply(id, 'logicQuery(X, a(X), 1)', $S.resumeRaw(), function() {});
-			assert.equal(res[0], 'res(1,1)');
+			var res = yield c1.apply(id, 'logicQuery(X, a(X), 1)', $R());
+			assert.equal(res.results[0], 'res(1,1)');
 		}));
 
 	});

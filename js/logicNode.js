@@ -8,21 +8,28 @@ var assert = require('assert');
 
 function UpstreamClient(node, results) {
 	this.apply = $S.async(function*(v, patch) {
-		var split = v.split(',');
-		var resp;
-		if(split[1] === "'_'") {
-			resp = yield node._locator.request(split[0], '/new', {id: split[0], 
-																  patch: patch}, $R());
-		} else {
-			resp = yield node._locator.request(split[0], '/apply', {ver: v, 
-																	patch: patch}, $R());
-		}
+		var resp = yield this.rawApply(v, patch, $R());
 		if(resp.res) {
 			resp.res.forEach(function(r) {
 				results.push(r);
 			});
 		}
-		return resp.ver;
+		return '[' + resp.clientPatches.join(',') + ']';
+	});
+	this.rawApply = $S.async(function*(v, patch) {
+		var split = v.split(',');
+		var resp;
+		if(split[1] === "'_'") {
+			resp = yield node._locator.request(split[0], '/new', {id: split[0],
+																  patch: patch}, $R());
+		} else {
+			resp = yield node._locator.request(split[0], '/apply', {ver: v,
+																	patch: patch}, $R());
+		}
+		if(!resp.res) {
+			resp.res = [];
+		}
+		return resp;
 	});
 }
 
@@ -47,11 +54,10 @@ var globalQuery = $S.async(function*(self, input, finalResult) {
 	} else {
 		ver = input.ver;
 	}
-	var results = [];
-	let client = new UpstreamClient(self, results);
-	ver = yield client.apply(ver, '[' + patches.join(',') + ']', $R());
+	let client = new UpstreamClient(self);
+	var resp = yield client.rawApply(ver, '[' + patches.join(',') + ']', $R());
 	var newPatches = [];
-	results.forEach(function(res) {
+	resp.res.forEach(function(res) {
 		if(res.substring(0,4) === 'res(') {
 			finalResult.push(res);
 		} else {
@@ -59,9 +65,9 @@ var globalQuery = $S.async(function*(self, input, finalResult) {
 		}
 	});
 	if(newPatches.length === 0) {
-		return {ver: ver, results: finalResult};
+		return {ver: resp.ver, results: finalResult};
 	} else {
-		return yield globalQuery(self, {ver: ver, patches: newPatches}, finalResult, $R());
+		return yield globalQuery(self, {ver: resp.ver, patches: newPatches}, finalResult, $R());
 	}
 });
 module.exports = function(options, bucketStore) {
@@ -69,34 +75,34 @@ module.exports = function(options, bucketStore) {
 
 	this._port = options.port;
 	this._locator = new PeerLocator(this._port, options.peer, options.clusterSize);
-	this._prolog = new PrologInterface('/tmp/logicNode.' + options.port + '.log');
+	this._prolog = new PrologInterface();
+	// this._prolog = new PrologInterface('logicNode.' + options.port + '.log');
 	if(options.maxDepth) {
 		this._prolog.request('set_max_depth(' + options.maxDepth + ')');
 	}
 	this._chunkStore = new ChunkStore(this._prolog, null, bucketStore, options);
 	this._locator.service('/new', $S.async(function*(input) {
 		var chunk = yield self._chunkStore.getChunk(input.id, $R());
-		var ver = yield chunk.init(input.patch, $R());
-		return {ver: ver};
+		return yield chunk.init(input.patch, $R());
 	}));
 	this._locator.service('/apply', $S.async(function*(input) {
 		var ver = input.ver;
 		var chunk = yield self._chunkStore.getChunk(ver, $R());
 		var results = [];
 		chunk.setUpstream(new UpstreamClient(self, results));
-		ver = yield chunk.apply(ver, 
-								input.patch, 
-								function(r) { results.push(r); },
+		var localRes = yield chunk.apply(ver,
+								input.patch,
 								$R());
-		return {ver: ver, res: results};
+		localRes.res = localRes.results.concat(results);
+		return localRes;
 	}));
 	this._locator.service('/', function(input, cb) { globalQuery(self, input, [], cb); });
 };
 
 var clazz = module.exports.prototype;
 
-clazz.start = function(cb) { 
-	return this._locator.run(cb); 
+clazz.start = function(cb) {
+	return this._locator.run(cb);
 };
 
 clazz.stop = $S.async(function*() {

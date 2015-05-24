@@ -193,6 +193,14 @@ describe('PrologInterface', function(){
 			var v1 = (yield em.on("success", $S.resumeRaw()))[0];
 			assert.equal(clientPatch[0], 'h_updatePlaceholder((foo(bar):-true), (' + v0 + '), (' + v1 + '))');
 		}));
+		it('should only emit h_updatePlaceholder() if the state has changed', $T(function*() {
+			var prolog = new PrologInterface();
+			var v0 = yield* createChunk(prolog, ['add_v((foo(bar) :- true), 1)']);
+			var em = prolog.request("on((" + v0 + "), logicQuery(X, foo(X), 1))");
+			var clientPatch = yield em.on('client-patch', $S.resumeRaw());
+			var v1 = (yield em.on("success", $S.resumeRaw()))[0];
+			assert.equal(clientPatch[0], '[]');
+		}));
 	});
 	function setMaxDepth(prolog, depth, cb) {
 		var em = prolog.request('set_max_depth(' + depth + ')');

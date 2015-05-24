@@ -230,7 +230,7 @@ describe('LogicNode', function(){
 				assert.equal(resp[1].statusCode, 200, resp[2]);
 				return resp[2];
 			});
-	  
+
 			it('should convert each add() patch to a pair of add_v() and add_m() patches', $T(function*(){
 				var res = yield send({patches: []}, $R());
 				res = yield send({ver: res.ver, patches: ['add(a(7),1)', 'add(rule(a(X),true,(b(X):-true)),1)']}, $R());

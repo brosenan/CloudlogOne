@@ -73,12 +73,18 @@ main:handleCmd(on((Hc,Hv1), Op), C1, C2, yes) :-
 		throw(chunkDoesNotExist(Hc))
 	)),
 	main:applyPatches(Op, Hc, M1, Hv1, Hv2, M2),
-	if(main:getKey(Op, Key),
+	if(Hv1 == Hv2,
 	(
-		main:writeClientPatch(h_updatePlaceholder(Key, (Hc, Hv1), (Hc, Hv2)))
+		main:writeClientPatch([])
 	), % else
 	(
-		true
+		if(main:getKey(Op, Key),
+		(
+			main:writeClientPatch(h_updatePlaceholder(Key, (Hc, Hv1), (Hc, Hv2)))
+		), % else
+		(
+			true
+		))
 	)),
 	rb_insert(C1, Hc, M2, C2),
 	writeHash(Hc, Hv2).
@@ -162,6 +168,10 @@ main:getKey(add_m(Rule, _), Key) :-
 main:getKey(logicQuery(_, Key, _), Key).
 main:getKey([Op | _], Key) :-
 	main:getKey(Op, Key).
+main:getKey(h_putPlaceholder(Key, _), Key).
+main:getKey(h_updatePlaceholder(Key, _, _), Key).
+
+
 
 main:reportPersist(Hc, Op) :-
 	write('& '),
