@@ -91,7 +91,7 @@ clazz.apply = function(v1, patch, cb) {
 				} catch(e) {
 					let m = e.message.match(/treap_error\(unexpected_placeholder\(\((.*)\),[ ]*\((.*)\)\)\)/);
 					if(m) {
-						v2 = yield self.apply(v2, upstream[placeholders[i]], $R());
+						v2 = (yield self.apply(v2, upstream[placeholders[i]], $R())).ver;
 					} else {
 						throw e;
 					}

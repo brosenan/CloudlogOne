@@ -153,7 +153,7 @@ describe('LogicNode', function(){
 				};
 				var resp = yield request(postOpts, $S.resumeRaw());
 				assert.ifError(resp[0]);
-				assert.equal(resp[1].statusCode, 200);
+				assert.equal(resp[1].statusCode, 200, resp[2]);
 				return resp[2].res;
 			});
 			it('should forward requests to other nodes if needed', $T(function*(){
